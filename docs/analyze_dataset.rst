@@ -4,7 +4,7 @@ Analyzing your dataset
 
 To analyze your dataset, ``nanodisco`` container can be used solely as an processing environment. This approach facilitate the processing of local datasets because no binding is required. Although, please note that the examples datasets (e.g. used in :ref:`Tool showcase<tool_showcase>`) cannot be retrieved because the container is not writable.
 
-.. code-block::
+.. code-block:: sh
 
    singularity build nd_env nanodisco.sif # Create a default container named nd_env (not a sandbox)
    singularity exec nd_env nanodisco # Show general help
