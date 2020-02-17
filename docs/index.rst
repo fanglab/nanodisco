@@ -34,6 +34,7 @@ Contents
    :maxdepth: 2
 
    overview
+   tool_showcase
    detailed_tutorial
    commands_overview
    commands_details

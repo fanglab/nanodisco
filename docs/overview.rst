@@ -23,8 +23,6 @@ Installation
    singularity pull --name nanodisco.sif shub://touala/smtm # Download the image from singularity-hub.org
    singularity build my_analysis nanodisco.sif # Create a container named my_analysis
 
-.. _tool_showcase:
-
 .. include:: tool_showcase.rst
 
 Citation
