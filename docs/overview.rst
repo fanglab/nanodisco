@@ -54,11 +54,10 @@ Methylation typing and fine mapping
 
 **Outputs:** For each queried methylation motif, ``nanodisco`` identifies the methylation type and the methylated position summarized in a heatmap (``Motifs_classification_Ecoli_nn_model.pdf``). See Figure 4d in the preprint as an example.
 
-
 .. figure:: figures/Motifs_classification_Ecoli_nn_model.png
-  :width: 600
-  :align: middle
-  :alt: E. coli methylation motifs classification results
+   :width: 600
+   :align: middle
+   :alt: E. coli methylation motifs classification results
 
 .. Note::
    #. AACNNNNNNGTGC: highest value (85) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA
@@ -90,10 +89,10 @@ Methylation binning of metagenomic contigs
 
 **Outputs:** t-SNE scatter plot that demonstrates the species level clustering of metagenomic contigs as presented in Figure 5a in the preprint.
 
-.. |Output Binning| figure:: figures/Contigs_methylation_tsne_MGM1_motif.png
-  :width: 600
-  :align: center
-  :alt: MGM1 guided metagenomic contigs binning
+.. figure:: figures/Contigs_methylation_tsne_MGM1_motif.png
+   :width: 600
+   :align: center
+   :alt: MGM1 guided metagenomic contigs binning
 
    #. AACNNNNNNGTGC: highest value (85) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA
    #. CCWGG: highest value (95) is on the 5mC row with offset +1 (relative to the first base), meaning that the second base (C) is 5mC
