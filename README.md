@@ -7,7 +7,7 @@
 - Integrate the two functionalities above together for *de novo* methylation motif discovery from microbiomes, and metagenomic analysis.
 
 ## Authors' notes
-We are actively developing `nanodisco` to facilitate usage and broaden features. All feedback is more than welcome. You can reach us on twitter ([@iamfanggang](#https://twitter.com/iamfanggang) and [@AlanTourancheau](#https://twitter.com/AlanTourancheau)) or directly through the [GitHub issues system](#https://github.com/fanglab/nanodisco/issues).
+We are actively developing `nanodisco` to facilitate usage and broaden features. All feedback is more than welcome. You can reach us on twitter ([@iamfanggang](https://twitter.com/iamfanggang) and [@AlanTourancheau](https://twitter.com/AlanTourancheau)) or directly through the [GitHub issues system](https://github.com/fanglab/nanodisco/issues).
 
 ## Content
 + [Installation](#Installation)
