@@ -48,11 +48,11 @@ RUN mkdir /home/nanodisco/analysis
 RUN mkdir /home/nanodisco/dataset
 
 # Display start-up information
-CMD echo "Usage:  docker run -v $PWD:/home/nanodisco -it <IMAGE_NAME> bash" && \
+CMD echo "Usage:  docker run -it --name <IMAGE_NAME> fanglab/nanodisco bash" && \
     echo "" && \
     echo "This will start a sub-shell within your current directory named /home/nanodisco." && \
     echo "You can then run analysis, including:" && \
     echo "   Typing and fine-mapping methylation motif." && \
     echo "   Bin metagenomic contigs using methylation signal." && \
     echo "" && \
-    echo "For more information, please consult https://github.com/touala/nanodisco"
+    echo "For more information, please consult https://github.com/fanglab/nanodisco"
