@@ -46,7 +46,7 @@ The image retrieved from [Singularity Hub] with `singularity pull` (nanodisco.si
 
 **Outputs:** For each queried methylation motif, `nanodisco` identifies the methylation type and the methylated position summarized in a heatmap (`Motifs_classification_Ecoli_nn_model.pdf`). See Figure 4d in the preprint as an example.
 
-![Output Characterize](/docs/Motifs_classification_Ecoli_nn_model.png "E. coli methylation motifs classification results")
+![Output Characterize](/docs/figures/Motifs_classification_Ecoli_nn_model.png "E. coli methylation motifs classification results")
 
 **Example commands:**
 ```sh
@@ -68,7 +68,7 @@ In this example, the current differences file (`EC_difference.RDS`) was generate
 **Outputs:** t-SNE scatter plots that demonstrates the species level clustering of metagenomic contigs as presented in the preprint Figure 5a.
 
 <p align="center">
-  <img src="/docs/Contigs_methylation_tsne_MGM1_motif.png" alt="MGM1 guided metagenomic contigs binning" width="500"/>
+  <img src="/docs/figures/Contigs_methylation_tsne_MGM1_motif.png" alt="MGM1 guided metagenomic contigs binning" width="500"/>
 </p>
 
 **Example commands:**
