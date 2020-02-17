@@ -67,7 +67,7 @@ In this example, the current differences file (`EC_difference.RDS`) was generate
 
 **Outputs:** t-SNE scatter plots that demonstrates the species level clustering of metagenomic contigs as presented in the preprint Figure 5a.
 
-![Output Binning](/docs/Contigs_methylation_tsne_MGM1_motif.png "MGM1 guided metagenomic contigs binning")
+<img src="/docs/Contigs_methylation_tsne_MGM1_motif.png" alt="MGM1 guided metagenomic contigs binning" width="400"/>
 
 **Example commands:**
 ```sh
