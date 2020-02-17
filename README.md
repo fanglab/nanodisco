@@ -75,7 +75,7 @@ nanodisco plot_binning -r reference/metagenome.fasta -u analysis/binning/methyla
 In this example, the current differences file (`metagenome_subset_difference.RDS`) was generated on a mouse gut microbiome nanopore sequencing dataset, MGM1 from the preprint, using `nanodisco difference`. This examples correspond to the procedure refered to as guided methylation binning where methylation motifs were already *de novo* discovered. **Runtime is \~10 min with 4 threads** and \~4 Gb of memory used.
 
 ## Documentation
-For a comprehensive description of `nanodisco` including installation guide, and a detailed tutorial, please consult the [complete documentation](#https://nanodisco.readthedocs.io/en/latest/).
+For a comprehensive description of `nanodisco` including installation guide, and a detailed tutorial, please consult the [complete documentation][Full Documentation].
 
 ## Citation
 
@@ -83,3 +83,4 @@ For a comprehensive description of `nanodisco` including installation guide, and
 [Singularity]: https://sylabs.io/singularity/
 [Singularity Hub]: https://singularity-hub.org/
 [Singularity Quick Start]: https://sylabs.io/guides/3.5/user-guide/quick_start.html
+[Full Documentation]: https://nanodisco.readthedocs.io/en/latest/detailed_tutorial_content.html
