@@ -47,6 +47,7 @@ The image retrieved from [Singularity Hub] with `singularity pull` (nanodisco.si
 **Outputs:** For each queried methylation motif, `nanodisco` identifies the methylation type and the methylated position summarized in a heatmap (`Motifs_classification_Ecoli_nn_model.pdf`). See Figure 4d in the preprint as an example.
 
 ![Output Characterize](/docs/figures/Motifs_classification_Ecoli_nn_model.png "E. coli methylation motifs classification results")
+*AACNNNNNNGTGC: highest value (85) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA*
 
 **Example commands:**
 ```sh
