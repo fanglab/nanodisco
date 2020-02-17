@@ -23,7 +23,7 @@ We are actively developing `nanodisco` to facilitate usage and broaden features.
 
 ```sh
 singularity pull --name nanodisco.sif shub://touala/smtm # Download the image from singularity-hub.org
-singularity build my_analysis nanodisco.sif # Create a container named my_analysis
+singularity build nd_env nanodisco.sif # Create a container named nd_env
 ```
 
 ## Tool showcase
