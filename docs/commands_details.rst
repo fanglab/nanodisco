@@ -18,6 +18,7 @@ Commands details
 * `filter_profile`_: Compute the methylation profile matrix for selected features for a metagenome sample
 * `binning`_: Perform methylation binning, cluster metagenomic contigs according to methylation feature similarities using t-SNE
 * `plot_binning`_: Plot results of methylation binning
+* `version`_: Print version
 * `help`_: Print help
 
 .. _preprocess:
@@ -439,6 +440,19 @@ Advanced parameters. We recommend leaving them set to default values:
 **Output:**
 
 * Methylation binning figure (``Contigs_methylation_tsne_<base_name>.pdf``) similar to Figure 5a-b in the preprint
+
+.. _version:
+
+version
+=======
+
+Print version.
+
+**Usage:**
+
+.. code-block:: none
+
+   nanodisco version
 
 .. _help:
 

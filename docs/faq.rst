@@ -28,5 +28,8 @@ FAQ
 * Q: Which software should I use to base call my data?
      Methylation typing and fine mapping is supported by a model we have trained using nanopore sequencing data base called with Albacore v2.3.4. Meanwhile, we are actively training new models for Guppy base caller and they will be released soon. Methylation binning of metagenomic contigs can be performed on nanopore data base called with any software (e.g. Albacore, Guppy) but note that we expect better results with more accurate base calling, therefore the latest base caller version is recommended.
 
-* Q: How much coverage is needed.
+* Q: How much coverage is needed?
      We obtained good results for methylation typing and fine mapping with 75-100x coverage (see Supplementary Figure 8a in the preprint). For methylation binning of metagenomic contigs, sequencing depth needed depends on the complexity of specific microbiome samples. In the samples described in the preprint, we obtained metagenomic bins with coverage from ~15x to ~370x.
+
+* Q: What are .RDS and .rds files?
+     Those files are ``R``'s own data file format, which conserved all object properties. Use ``readsRDS`` function to read a R data file. 

@@ -16,9 +16,9 @@ Alternatively, by binding a directory with nanopore sequencing datasets using ``
 
 .. code-block:: sh
 
+   singularity build --sandbox nd_analysis nanodisco.sif # Create a writable container (directory) named nd_analysis
    # Start an interactive shell to use nanodisco and bind your nanopore sequencing dataset (*.fast5 files) to /home/nanodisco/dataset
-   singularity shell --pwd /home/nanodisco --no-home -e -s /bin/bash -B ./path/to/my_datasets:/home/nanodisco/dataset:ro -w my_analysis # For new analysis
-   # source .bashrc # If Singularity version >=3.3 for a pretty prompt
+   singularity run --no-home -B ./path/to/my_datasets:/home/nanodisco/dataset:ro -w nd_analysis
    # Type `exit` to leave the container
 
 However, the container being writable also means that any modification made to the image's files, including system files and files from bound directories with ``-B`` (without ``:ro``) will be permanent. Note that, to maintain an organized container one can bind another directory containing a genome sequence file (.fasta) by adding ``-B ./path/to/my_genome_directory:/home/nanodisco/reference`` or directly use ``cp $genome_path ./my_analysis/home/nanodisco/reference/``.
