@@ -103,11 +103,11 @@ Citation
 
 
 .. |Output Characterize| image:: figures/Motifs_classification_Ecoli_nn_model.png
-  :width: 400
+  :width: 600
   :align: middle
   :alt: E. coli methylation motifs classification results
 
 .. |Output Binning| image:: figures/Contigs_methylation_tsne_MGM1_motif.png
-  :width: 400
+  :width: 600
   :align: middle
   :alt: MGM1 guided metagenomic contigs binning
