@@ -10,7 +10,7 @@ Features
 
 * *De novo* discover DNA methylation motifs, identify specific type (6mA, 5mC or 4mC, namely *typing*) of a methylation motif, and identify which specific position within the motif is methylated (namely *fine mapping*). 
 * Perform metagenomic binning based on microbial DNA methylation pattern by constructing and clustering a methylation profile matrix. 
-* Integrate the two functionalities above together for *de novo* methylation motif discovery from microbiome, and metagenomic analysis.
+* Integrate the two functionalities above together for *de novo* methylation motif discovery from microbiomes, and metagenomic analysis.
 
 Authors' notes
 --------------
