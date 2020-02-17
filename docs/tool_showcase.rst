@@ -14,12 +14,12 @@ Prepare the container for examples
    singularity run --no-home -w nd_example              # Start an interactive shell to use nanodisco, type `exit` to leave
 
 .. note::
-  The image retrieved from `Singularity Hub <https://singularity-hub.org/>`_ with ``singularity pull`` (e.g. nanodisco.sif) is already built and can be reused at will. The command ``singularity build`` create a container from the image as a writable directory called a ``sandbox`` (nd_example). The command ``singularity run`` starts a interactive shell within ``nd_example`` container. You can directly reuse the same ``sandbox`` directory or you can create multiple ``sandbox`` directories to compartmentalize analysis of different datasets (e.g. my_analysis and my_analysis2). Containers build with those instructions are writable meaning that results from nanodisco analysis can be retrieve when the container is not running. Outputs for the following commands can be found at ``./path/to/nd_example/home/nanodisco/analysis``.
+  The image retrieved from `Singularity Hub <https://singularity-hub.org/>`_ with ``singularity pull`` (e.g. nanodisco.sif) is already built and can be reused at will. The command ``singularity build`` creates a container from the image as a writable directory called a ``sandbox`` (nd_example). The command ``singularity run`` starts an interactive shell within the ``nd_example`` container. You can directly reuse the same ``sandbox`` directory or you can create multiple ``sandbox`` directories to compartmentalize analysis of different datasets (e.g. my_analysis and my_analysis2). Containers built with those instructions are writable meaning that results from nanodisco analysis can be retrieved when the container is not running. Outputs for the following commands can be found at ``./path/to/nd_example/home/nanodisco/analysis``.
 
 Methylation typing and fine mapping
 -----------------------------------
 
-**Goal:** Identify the specific type (6mA, 5mC or 4mC, namely *typing*) of a methylation motif, and identify specific position within the motif is methylated (namely *fine mapping*). Detailed method is described in the preprint.
+**Goal:** Identify the specific type (6mA, 5mC or 4mC, namely *typing*) of a methylation motif, and identify which specific position within the motif is methylated (namely *fine mapping*). The detailed method is described in the preprint.
 
 **Inputs:**
 
@@ -34,7 +34,7 @@ Methylation typing and fine mapping
    :align: center
    :alt: E. coli methylation motifs classification results
 
-.. Note::
+.. admonition:: Interpretation of the above figure
    #. AACNNNNNNGTGC: highest value (85) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA
    #. CCWGG: highest value (95) is on the 5mC row with offset +1 (relative to the first base), meaning that the second base (C) is 5mC
    #. GATC: highest value (91) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA
@@ -48,12 +48,12 @@ Methylation typing and fine mapping
    get_data_bacteria # Retrieve E. coli current differences and reference genome
    nanodisco characterize -p 4 -b Ecoli -d dataset/EC_difference.RDS -o analysis/Ecoli_motifs -m GATC,CCWGG,GCACNNNNNNGTT,AACNNNNNNGTGC -t nn -r reference/Ecoli_K12_MG1655_ATCC47076.fasta
 
-See parameters detailed and advanced parameters in :ref:`characterize` section. In this example, the current differences file (``EC_difference.RDS``) was generated on a whole *E. coli* nanopore sequencing dataset, from the preprint, using ``nanodisco difference``. **Runtime is ~1 min with 4 threads** (~6.5GiB memory used).
+See details and advanced parameters in :ref:`characterize` section. In this example, the current differences file (``EC_difference.RDS``) was generated on a whole *E. coli* nanopore sequencing dataset, from the preprint, using ``nanodisco difference``. **Runtime is ~1 min with 4 threads** (~6.5 GB memory used).
 
 Methylation binning of metagenomic contigs
 ------------------------------------------
 
-**Goal:** Construction methylation profiles for metagenomic contigs, identify informative features, and perform methylation binning for high-resolution metagenomic analysis.
+**Goal:** Construct methylation profiles for metagenomic contigs, identify informative features, and perform methylation binning for high-resolution metagenomic analysis.
 
 **Inputs:**
 
@@ -79,7 +79,7 @@ Methylation binning of metagenomic contigs
    nanodisco binning -r reference/metagenome.fasta -s dataset/methylation_profile_MGM1_motif.RDS -b MGM1_motif -o analysis/binning
    nanodisco plot_binning -r reference/metagenome.fasta -u analysis/binning/methylation_binning_MGM1_motif.RDS -b MGM1_motif -o analysis/binning -a reference/motif_binning_annotation.RDS --MGEs_file dataset/list_MGE_contigs.txt
 
-See parameters detailed and advanced parameters in :ref:`profile`, :ref:`binning`, and :ref:`plot_binning` sections. In this example, the current differences file (``metagenome_subset_difference.RDS``) was generated on a mouse gut microbiome nanopore sequencing dataset, MGM1 from the preprint, using ``nanodisco difference``. This example corresponds to the procedure referred to as guided methylation binning where methylation motifs were already *de novo* discovered. **Runtime is ~10 min with 4 threads** and ~4 Gb of memory used. We also described the procedure for automated methylation binning (including methylation features selection) from current differences file to binning results in the :ref:`detailed tutorial <detailed-tutorial-content>`.
+See details and advanced parameters in :ref:`profile`, :ref:`binning`, and :ref:`plot_binning` sections. In this example, the current differences file (``metagenome_subset_difference.RDS``) was generated on a mouse gut microbiome nanopore sequencing dataset, MGM1 from the preprint, using ``nanodisco difference``. This example corresponds to the procedure referred to as guided methylation binning where methylation motifs were already *de novo* discovered. **Runtime is ~10 min with 4 threads** and ~4 GB of memory used. We also described the procedure for automated methylation binning (including methylation features selection) from current differences file to binning results in the :ref:`detailed tutorial <detailed-tutorial-content>`.
 
 Detailed tutorial
 -----------------

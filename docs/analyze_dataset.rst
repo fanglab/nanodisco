@@ -4,7 +4,7 @@ Analyzing your dataset
 
 We highly recommend users to consult the :ref:`detailed tutorial <detailed-tutorial>` before analyzing your own dataset.
 
-To analyze your dataset, ``nanodisco`` container can be used solely as an processing environment. This approach facilitate the processing of local datasets because no binding is required. Although, please note that the examples datasets used in :ref:`Tool showcase<tool-showcase>` and the :ref:`detailed tutorial <detailed-tutorial>` cannot be retrieved because the container is not writable with the following command.
+To analyze your dataset, ``nanodisco`` container can be used solely as a processing environment. This approach facilitates the processing of local datasets because no binding is required. Although, please note that the examples datasets used in :ref:`Tool showcase<tool-showcase>` and the :ref:`detailed tutorial <detailed-tutorial>` cannot be retrieved because the container is not writable with the following command.
 
 .. code-block:: sh
 

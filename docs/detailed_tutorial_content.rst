@@ -3,7 +3,7 @@
 
 .. _detailed-tutorial-content:
 
-We highly recommend users to consult the :ref:`Tool showcase <tool-showcase>` before proceeding. To demonstrate the toolbox applications and facilitate further understanding of the methods, we provide more detailed examples for the analysis of two datasets presented in the preprint. These datasets can be downloaded with the following commands from within a nanodisco container: ``get_data_bacteria`` and ``get_data_microbiome``.
+We recommend users to first try the :ref:`Tool showcase <tool-showcase>` before this detailed tutorial. To demonstrate the toolbox applications and facilitate further understanding of the methods, we provide more detailed examples for the analysis of two datasets presented in the preprint. These datasets can be downloaded with the following commands from within a nanodisco container: ``get_data_bacteria`` and ``get_data_microbiome``.
 
 .. _generate_differences:
 
@@ -169,7 +169,7 @@ Identify the specific type (6mA, 5mC or 4mC, namely typing) of a methylation mot
    get_data_bacteria # If not already retrieved
    nanodisco characterize -p 4 -b Ecoli -d dataset/EC_difference.RDS -o analysis/Ecoli_motifs -m GATC,CCWGG,GCACNNNNNNGTT,AACNNNNNNGTGC -t nn,rf,knn -r reference/Ecoli_K12_MG1655_ATCC47076.fasta
 
-Parameters ``-p`` number of threads, ``-b`` base sample name, ``-d`` path to current differences file, ``-o`` path to output directory, ``-m`` comma separated list of motifs, ``-t`` comma separated list of models (nn/rf/knn), and ``-r`` path to reference genome. See details and advanced parameters in :ref:`characterize` section. In this example, the current differences file (``EC_difference.RDS``) was generated on a whole E. coli nanopore sequencing dataset, from the preprint, using ``nanodisco difference`` (see :ref:`Generating current differences<generate_differences>`). **Runtime is ~7 min with 4 threads** (~10GiB memory used).
+Parameters ``-p`` number of threads, ``-b`` base sample name, ``-d`` path to current differences file, ``-o`` path to output directory, ``-m`` comma separated list of motifs, ``-t`` comma separated list of models (nn/rf/knn), and ``-r`` path to reference genome. See details and advanced parameters in :ref:`characterize` section. In this example, the current differences file (``EC_difference.RDS``) was generated on a whole E. coli nanopore sequencing dataset, from the preprint, using ``nanodisco difference`` (see :ref:`Generating current differences<generate_differences>`). **Runtime is ~7 min with 4 threads** (~10 GB memory used).
 
 .. _microbiome:
 
@@ -240,7 +240,7 @@ Methylation profiles can be constructed by two approaches:
    get_data_microbiome # If not already retrieved
    nanodisco profile -p 4 -r reference/metagenome.fasta -d dataset/metagenome_subset_difference.RDS -w dataset/metagenome_WGA.cov -n dataset/metagenome_NAT.cov -b MGM1_motif -o analysis/binning --motifs_file dataset/list_de_novo_discovered_motifs.txt
 
-Parameters ``-p`` number of threads, ``-r`` path to reference genome, ``-d`` path to current differences file, ``-w`` and ``-n`` path to WGA and native coverage files (generated with ``nanodisco coverage``), ``-b`` name of sample/analysis, ``-o`` path to output directory, and ``--motifs_file`` path to file with list of motifs following IUPAC nucleotide code (one per line). See details and advanced parameters in :ref:`profile` section. **Runtime is ~1 min with 4 threads** and ~4 Gb of memory used.
+Parameters ``-p`` number of threads, ``-r`` path to reference genome, ``-d`` path to current differences file, ``-w`` and ``-n`` path to WGA and native coverage files (generated with ``nanodisco coverage``), ``-b`` name of sample/analysis, ``-o`` path to output directory, and ``--motifs_file`` path to file with list of motifs following IUPAC nucleotide code (one per line). See details and advanced parameters in :ref:`profile` section. **Runtime is ~1 min with 4 threads** and ~4 GB of memory used.
 
 You can generate a similar methylation profile to the one used in the preprint by applying the following command. Note that the operation needs more memory therefore we also provided its output file (``dataset/methylation_profile_MGM1_motif.RDS``) within the example dataset retrieved with ``get_data_microbiome``. This allows you to skip this step and directly proceed to ``nanodisco binning``.
 
@@ -249,7 +249,7 @@ You can generate a similar methylation profile to the one used in the preprint b
    get_data_microbiome # If not already retrieved
    nanodisco profile -p 20 -r reference/metagenome.fasta -d dataset/metagenome_difference.RDS -w dataset/metagenome_WGA.cov -n dataset/metagenome_NAT.cov -b MGM1_motif -o analysis/binning --motifs_file dataset/list_de_novo_discovered_motifs.txt
 
-With this command the **runtime is ~3 min with 20 threads** and ~140 Gb of memory used.
+With this command the **runtime is ~3 min with 20 threads** and ~140 GB of memory used.
 
 .. _automated:
 
@@ -290,7 +290,7 @@ This is a long procedure (>24 hours with 20+ threads depending on the metagenome
    get_data_microbiome # If not already retrieved
    nanodisco select_feature -p 4 -r reference/metagenome.fasta -s dataset/methylation_profile_MGM1_auto.RDS -b MGM1_auto -o analysis/binning
 
-Parameters ``-p`` number of threads, ``-r`` path to reference genome, ``-d`` path to current differences file, ``-w`` and ``-n`` path to WGA and native coverage files (generated with ``nanodisco coverage``), ``-b`` name of sample/analysis, ``-o`` path to output directory, and ``-a`` request automated methylation binning. See details and advanced parameters in :ref:`select_feature` section. **Runtime is ~45 min with 4 threads** and ~140 Gb of memory used.
+Parameters ``-p`` number of threads, ``-r`` path to reference genome, ``-d`` path to current differences file, ``-w`` and ``-n`` path to WGA and native coverage files (generated with ``nanodisco coverage``), ``-b`` name of sample/analysis, ``-o`` path to output directory, and ``-a`` request automated methylation binning. See details and advanced parameters in :ref:`select_feature` section. **Runtime is ~45 min with 4 threads** and ~140 GB of memory used.
 
 **Description:** Compute methylation profile for select informative methylation features for all contigs with sufficient coverage (>10x in native and WGA dataset).
 

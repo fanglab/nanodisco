@@ -93,4 +93,4 @@ For a comprehensive description of `nanodisco` including installation guide, and
 [Singularity]: https://sylabs.io/singularity/
 [Singularity Hub]: https://singularity-hub.org/
 [Singularity Quick Start]: https://sylabs.io/guides/3.5/user-guide/quick_start.html
-[Full Documentation]: https://nanodisco.readthedocs.io/en/latest/detailed_tutorial_content.html
+[Full Documentation]: https://nanodisco.readthedocs.io/en/latest/overview.html
