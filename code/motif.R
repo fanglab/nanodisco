@@ -40,7 +40,7 @@ opt <- check.input.motif(opt)
 nb_threads <- opt$nb_threads
 base_name <- opt$base_name
 path_diff_data <- opt$path_diff_data
-genome <- opt$genome
+genome <- normalizePath(opt$genome) # Need full path after setwd()
 path_output <- paste0(gsub("/$","",opt$path_output),"/") # Make sure it's ending with a slash
 list_motif <- opt$list_motif # Potential conversion from comma separated list to vector made in check.input.motif
 smooth_win_size <- opt$smooth_win_size
@@ -50,7 +50,7 @@ nb_peaks <- opt$nb_peaks
 smooth_func <- opt$smooth_func
 threshold <- opt$threshold
 automated <- opt$auto # Default is FALSE
-score_threshold <- opt$score_threshold # Default is FALSE
+score_threshold <- opt$score_threshold
 list_contig <- opt$list_contig
 
 print_message("Prepare output folder")
