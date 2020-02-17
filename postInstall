@@ -1,0 +1,183 @@
+#!/usr/bin/env bash
+set -ex
+
+# Setup alias and environment variables
+mkdir -p /home/nanodisco # Will become HOME and WORKDIR
+touch /home/nanodisco/.bashrc
+{
+    echo 'alias ls="ls --color=auto"'
+    echo 'alias ll="ls -hla"'
+    echo 'get_data_bacteria (){ wget --show-progress https://nanodiscodata.s3.us-east-2.amazonaws.com/data_bacteria.tar.gz && tar -zxf data_bacteria.tar.gz -C /home && rm data_bacteria.tar.gz ;}'
+    echo 'get_data_microbiome (){ wget --show-progress https://nanodiscodata.s3.us-east-2.amazonaws.com/data_microbiome.tar.gz && tar -zxf data_microbiome.tar.gz -C /home && rm data_microbiome.tar.gz ;}'
+    echo 'export PS1="\[\033[36m\]\u\[\033[m\]@\[\033[32m\]nanodisco:\[\033[33;1m\]\w\[\033[m\]$ "' # Prettify prompt
+    echo 'export OMPI_MCA_btl_base_warn_component_unused=0' # Hide common OpenMPI warning
+} >> /home/nanodisco/.bashrc
+
+# Add nanodisco in $PATH
+ln -s /home/nanodisco/code/nanodisco /usr/bin/nanodisco
+# Change permission
+mkdir -p /home/nanodisco/code # Will contain all nanodisco code (main exec, wrapper, and script)
+find /home/nanodisco/code -type f -exec chmod 755 {} \;
+
+# Retrieve typing and fine-mapping models
+wget -q https://nanodiscodata.s3.us-east-2.amazonaws.com/data_default.tar.gz
+tar -zxf data_default.tar.gz -C /home && rm data_default.tar.gz
+
+# Install Nanopolish version 0.11.0
+git clone --recursive -b v0.11.0 https://github.com/jts/nanopolish.git nanopolish-0.11.0
+cd nanopolish-0.11.0
+make
+cp nanopolish /usr/bin/nanopolish
+cp etc/r9-models/r9.4_450bps.nucleotide.6mer.template.model /usr/bin/r9.4_450bps.nucleotide.6mer.template.model
+
+cd ..
+
+# Install bwa version 0.7.15
+wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2
+tar xf bwa-0.7.15.tar.bz2 && rm bwa-0.7.15.tar.bz2
+cd bwa-0.7.15
+make
+cp bwa /usr/bin/bwa
+
+cd ..
+
+# Install samtools version 1.3
+wget https://sourceforge.net/projects/samtools/files/samtools/1.3/samtools-1.3.tar.bz2
+tar xf samtools-1.3.tar.bz2 && rm samtools-1.3.tar.bz2
+cd samtools-1.3
+make
+cp samtools /usr/bin/samtools 
+
+cd ..
+
+# Prepare for installing R packages
+echo "options(repos ='https://cran.rstudio.com/', \
+  unzip = 'internal', \
+  download.file.method ='libcurl', \
+  Ncpus = parallel::detectCores() )" >> /usr/local/lib/R/etc/Rprofile.site #  /etc/R/Rprofile.site
+
+# Packages managers for R
+Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
+    install.packages('devtools'); \
+    install.packages('BiocManager'); \
+"
+
+# Packages for processing
+Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
+    devtools::install_version('data.table', version='1.12.2', upgrade='never'); \
+    devtools::install_version('stringr', version='1.4.0', upgrade='never'); \
+    devtools::install_version('optparse', version='1.6.2', upgrade='never'); \
+    devtools::install_version('doMC', version='1.3.5', upgrade='never'); \
+    devtools::install_version('foreach', version='1.4.4', upgrade='never'); \
+    devtools::install_version('iterators', version='1.0.10', upgrade='never'); \
+    BiocManager::install('GenomicRanges', update=FALSE); \
+    BiocManager::install('Rsamtools', update=FALSE); \
+    devtools::install_version('pillar', version='1.3.1', upgrade='never'); \
+    devtools::install_version('bindrcpp', version='0.2', upgrade='never'); \
+    devtools::install_version('dplyr', version='0.8.0.1', upgrade='never'); \
+    BiocManager::install('GenomicAlignments', update=FALSE); \
+    devtools::install_version('plyr', version='1.8.4', upgrade='never'); \
+    devtools::install_version('MASS', version='7.3-51.4', upgrade='never'); \
+    devtools::install_version('tidyr', version='0.8.3', upgrade='never'); \
+"
+
+# Packages for analysis
+Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
+    devtools::install_version('seqinr', version='3.4-5', upgrade='never'); \
+    devtools::install_version('gtable', version='0.2.0', upgrade='never'); \
+    devtools::install_version('scales', version='0.4.1', upgrade='never'); \
+    devtools::install_version('ggplot2', version='2.2.1', upgrade='never'); \
+    devtools::install_version('egg', version='0.4.2', upgrade='never'); \
+    devtools::install_version('RColorBrewer', version='1.1-2', upgrade='never'); \
+    devtools::install_version('zoo', version='1.8-0', upgrade='never'); \
+    devtools::install_version('metap', version='0.8', upgrade='never'); \
+    devtools::install_version('reshape', version='0.8.6', upgrade='never'); \
+    devtools::install_version('pROC', version='1.9.1', upgrade='never'); \
+    devtools::install_version('ggdendro', version='0.1-20', upgrade='never'); \
+    devtools::install_version('kernlab', version='0.9-25', upgrade='never'); \
+    devtools::install_version('mclust', version='5.2.3', upgrade='never'); \
+    devtools::install_version('trimcluster', version='0.1-2.1', upgrade='never'); \
+    devtools::install_version('fpc', version='2.1-11', upgrade='never'); \
+    devtools::install_version('dendextend', version='1.5.2', upgrade='never'); \
+    devtools::install_version('ggseqlogo', version='0.1', upgrade='never'); \
+    devtools::install_version('gtools', version='3.5.0', upgrade='never'); \
+    devtools::install_version('ggbeeswarm', version='0.6.0', upgrade='never'); \
+    devtools::install_version('hues', version='0.1', upgrade='never'); \
+    devtools::install_version('Rtsne', version='0.13', upgrade='never'); \
+    devtools::install_version('VGAM', version='1.0-3', upgrade='never'); \
+    devtools::install_version('mda', version='0.4-9', upgrade='never'); \
+    devtools::install_version('earth', version='4.6.3', upgrade='never'); \
+    devtools::install_version('e1071', version='1.6-8', upgrade='never'); \
+    devtools::install_version('nnet', version='7.3-12', upgrade='never'); \
+    devtools::install_version('randomForest', version='4.6-12', upgrade='never'); \
+    devtools::install_version('klaR', version='0.6-12', upgrade='never'); \
+    devtools::install_version('caret', version='6.0-76', upgrade='never'); \
+    devtools::install_version('XML', version='3.98-1.7', upgrade='never'); \
+    BiocManager::install('rhdf5', update=FALSE); \
+    BiocManager::install('BSgenome', update=FALSE); \
+    BiocManager::install('rtracklayer', update=FALSE); \
+"
+
+# Install perl modules for meme
+export PERL_MM_USE_DEFAULT=1                     # Remove potential prompt
+export PERL_EXTUTILS_AUTOINSTALL="--defaultdeps" # Remove potential prompt
+perl -MCPAN -e 'install HTML::Template'
+perl -MCPAN -e 'install XML::Simple'
+perl -MCPAN -e 'install XML::Compile::SOAP11'
+perl -MCPAN -e 'install XML::Compile::WSDL11'
+perl -MCPAN -e 'install XML::Compile::Transport::SOAPHTTP'
+perl -MCPAN -e 'install Log::Log4perl'
+perl -MCPAN -e 'install Math::CDF'
+# perl -MCPAN -e 'install JSON' # Done with apt-get
+# perl -MCPAN -e 'install HTML::Treebuilder' # Done with apt-get
+
+# Install meme version 4.11.4
+wget http://meme-suite.org/meme-software/4.11.4/meme_4.11.4_1.tar.gz
+tar xvf meme_4.11.4_1.tar.gz && rm meme_4.11.4_1.tar.gz
+cd meme_4.11.4
+
+mkdir build
+./configure --prefix=/meme_4.11.4/build
+sed -i 's/\/usr\/bin\/mpirun -np/\/usr\/bin\/mpirun --allow-run-as-root -np/g' config.status # Allow OpenMPI to run in Docker's default root environment
+sed -i 's/\/usr\/bin\/mpirun/\/usr\/bin\/mpirun --allow-run-as-root/g' config.status # Allow OpenMPI to run in Docker's default root environment
+make
+# make test # Not needed
+make install
+cp /meme_4.11.4/build/bin/meme /usr/bin/meme
+mkdir -p /etc/libibverbs.d # Fix one OpenMPI warning 
+
+cd ..
+
+# Install bedtools version 2.26.0
+wget https://github.com/arq5x/bedtools2/releases/download/v2.26.0/bedtools-2.26.0.tar.gz
+tar xvf bedtools-2.26.0.tar.gz && rm bedtools-2.26.0.tar.gz
+cd bedtools2
+make
+cp /bedtools2/bin/bedtools /usr/bin/bedtools
+
+cd ..
+
+# apt-get installed version from Dockerfile
+# "vim" \                    # 2:8.0.0197-4+deb9u3
+# "git" \                    # 1:2.11.0-3+deb9u5
+# "wget" \                   # 1.18-5+deb9u3
+# "bzip2" \                  # 1.0.6-8.1
+# "parallel" \               # 20161222-1
+# "python" \                 # 2.7.13-2
+# "ghostscript" \            # 9.26a~dfsg-0+deb9u6
+# "libcurl4-openssl-dev" \   # 7.52.1-5+deb9u9
+# "libssl-dev" \             # 1.1.0l-1~deb9u1
+# "libxml2-dev" \            # 2.9.4+dfsg1-2.2+deb9u2
+# "libxslt1-dev" \           # 1.1.29-2.1+deb9u1
+# "zlib1g-dev" \             # 1:1.2.8.dfsg-5
+# "libncurses5-dev" \        # 6.0+20161126-1+deb9u2
+# "libncursesw5-dev" \       # 6.0+20161126-1+deb9u2
+# "libexpat1-dev" \          # 2.2.0-2+deb9u3
+# "libjson-perl" \           # 2.90-1
+# "libhtml-tree-perl"        # 5.03-2
+# "libbz2-dev" \             # 1.0.6-8.1
+# "liblzma-dev"              # 5.2.2-1.2+b1
+# "openmpi-bin" \            # 2.0.2-2
+# "libopenmpi-dev" \         # 2.0.2-2
+# "openssh-client" \         # 1:7.4p1-10+deb9u7
+# "openssh-server" \         # 1:7.4p1-10+deb9u7

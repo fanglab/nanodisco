@@ -1,0 +1,136 @@
+#!/bin/bash
+
+nanodisco_version="v1.0.0"
+
+###
+# Wrapper for nanodisco subtasks
+###
+# preprocess: Extract reads (.fasta) from base called fast5 files and map reads on reference (meta)genome
+# chunk_info: Display chunks information regarding supplied reference (meta)genome
+# difference: Compute nanopore signal difference between a native and a WGA dataset
+# merge: Combine nanopore signal difference for all processed chunks in directory
+# motif: De novo discovery of methylation motifs
+# characterize: Predict the methylation type and fine-map the modification within de novo discovered methylation motifs file
+# coverage: Compute average coverage for each contig in a reference genome (uses bedtools genomecov)
+# profile: Compute the methylation profile matrix for a metagenome sample (methylation feature at common or expected methylation motifs)
+# select_feature: Select informative feature from a methylation profile matrix
+# filter_profile: Compute the methylation profile matrix for selected features for a metagenome sample
+# binning: Perform methylation binning, cluster metagenomic contigs according to methylation feature similarities using t-SNE
+# plot_binning: Plot results of methylation binning
+# help: Print help
+# help: Print version
+
+## Describe subtasks
+preprocess_def="Extract reads (.fasta) from base called fast5 files and map reads on reference (meta)genome."
+chunk_info_def="Display chunks information regarding supplied reference (meta)genome."
+difference_def="Compute nanopore signal difference between a native and a WGA dataset."
+merge_def="Combine nanopore signal difference for all processed chunks in directory."
+motif_def="De novo discovery of methylation motifs from current differences file."
+characterize_def="Predict the methylation type and fine-map the modification within de novo discovered methylation motifs file."
+coverage_def="Compute average coverage for each contig in a reference genome (uses bedtools genomecov)."
+profile_def="Compute the methylation profile matrix for a metagenome sample (methylation feature at common or expected methylation motifs)."
+select_feature_def="Select informative feature from a methylation profile matrix."
+filter_profile_def="Compute the methylation profile matrix for selected features for a metagenome sample."
+binning_def="Perform methylation binning, cluster metagenomic contigs according to methylation feature similarities using t-SNE."
+plot_binning_def="Plot results of methylation binning."
+
+# Handle missing parameters
+if [[ "$#" -eq 0 ]]; then
+  subtask="help"
+else
+  subtask="$1"
+fi
+
+case $subtask in
+  preprocess)
+    cmd="/home/nanodisco/code/preprocess.sh"
+    shift # pass subtask
+    ;;
+  chunk_info)
+    cmd="/home/nanodisco/code/chunk_info.R"
+    shift # pass subtask
+    ;;
+  difference)
+    cmd="/home/nanodisco/code/difference.sh"
+    shift # pass subtask
+    ;;
+  merge)
+    cmd="/home/nanodisco/code/merge.R"
+    shift # pass subtask
+    ;;
+  motif)
+    cmd="/home/nanodisco/code/motif.R"
+    shift # pass subtask
+    ;;
+  characterize)
+    cmd="/home/nanodisco/code/characterize.R"
+    shift # pass subtask
+    ;;
+  coverage)
+    cmd="/home/nanodisco/code/coverage.sh"
+    shift # pass subtask
+    ;;
+  profile)
+    cmd="/home/nanodisco/code/profile.R"
+    shift # pass subtask
+    ;;
+  select_feature)
+    cmd="/home/nanodisco/code/select_feature.R"
+    shift # pass subtask
+    ;;
+  filter_profile)
+    cmd="/home/nanodisco/code/filter_profile.R"
+    shift # pass subtask
+    ;;
+  binning)
+    cmd="/home/nanodisco/code/binning.R"
+    shift # pass subtask
+    ;;
+  plot_binning)
+    cmd="/home/nanodisco/code/plot_binning.R"
+    shift # pass subtask
+    ;;
+  -h|help) # Print help
+    echo "Usage: nanodisco <subtasks> [parameters]" >&2
+    echo "    subtasks:" >&2
+    echo "      - preprocess: $preprocess_def" >&2
+    echo "      - chunk_info: $chunk_info_def" >&2
+    echo "      - difference: $difference_def" >&2
+    echo "      - merge: $merge_def" >&2
+    echo "      - motif: $motif_def" >&2
+    echo "      - characterize: $characterize_def" >&2
+    echo "      - coverage: $coverage_def" >&2
+    echo "      - profile: $profile_def" >&2
+    echo "      - select_feature: $select_feature_def" >&2
+    echo "      - filter_profile: $filter_profile_def" >&2
+    echo "      - binning: $binning_def" >&2
+    echo "      - plot_binning: $plot_binning_def" >&2
+    echo "      - help: Show this message." >&2
+    echo "      - version: Show the image version." >&2
+    echo -e "\nAdditional information can be found in our GitHub repository." >&2
+    exit 3
+    ;;
+  -v|version) # Print version
+    echo $nanodisco_version
+    exit 3
+    ;;
+  *) # unknown subtask
+    echo "Subtask $1 isn't recognized." >&2
+    echo "Execute 'nanodisco help' to display available subtasks." >&2
+    exit 3
+    ;;
+esac
+
+if [[ -z "$@" ]]; then
+  echo "No parameters supplied to nanodisco $subtask." >&2
+  # Display help for requested subtask
+  $cmd -h
+else
+  # Execute subtask
+  $cmd "$@"
+fi
+
+
+
+
+
