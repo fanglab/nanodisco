@@ -49,7 +49,7 @@ The image retrieved from [Singularity Hub] with `singularity pull` (nanodisco.si
 ![Output Characterize](/docs/figures/Motifs_classification_Ecoli_nn_model.png "E. coli methylation motifs classification results")*1. AACNNNNNNGTGC: highest value (85) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA*<br />
 *2. CCWGG: highest value (95) is on the 5mC row with offset +1 (relative to the first base), meaning that the second base (C) is 5mC*<br />
 *3. GATC: highest value (91) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA*<br />
-*4. GCACNNNNNNGTT: highest value (84) is on the 6mA row with offset +2 (relative to the first base), meaning that the third base (A) is 6mA*
+<sub>*4. GCACNNNNNNGTT: highest value (84) is on the 6mA row with offset +2 (relative to the first base), meaning that the third base (A) is 6mA*</sub>
 
 **Example commands:**
 ```sh
