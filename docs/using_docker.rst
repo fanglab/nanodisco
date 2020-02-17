@@ -14,10 +14,10 @@ Install nanodisco with Docker
 
 .. code-block:: sh
 
-   docker pull touraa01/smtm # Download the image from hub.docker.com
+   docker pull fanglab/nanodisco # Download the image from hub.docker.com
 
    # Create and start an interactive shell to use nanodisco
-   docker run -it --name my_analysis touraa01/smtm bash # For running example analysis
+   docker run -it --name my_analysis fanglab/nanodisco bash # For running example analysis
    # Type `exit` to leave the container
 
 The image retrieved from `Docker Hub <https://hub.docker.com/>`_ with ``docker pull`` is already built and can be reused at will. The command ``docker run`` creates and run a container named ``my_analysis`` from the image. This command will start an interactive shell within ``my_analysis`` container.
@@ -30,7 +30,7 @@ By binding a directory with nanopore sequencing datasets using ``-v /full_path/t
 .. code-block:: sh
 
    # Start an interactive shell to use nanodisco and bind your nanopore sequencing dataset (*.fast5 files) to /home/nanodisco/dataset
-   docker run -it --name my_analysis -v /full_path/to/my_datasets:/home/nanodisco/dataset:ro touraa01/smtm bash # For new analysis
+   docker run -it --name my_analysis -v /full_path/to/my_datasets:/home/nanodisco/dataset:ro fanglab/nanodisco bash # For new analysis
    # Type `exit` to leave the container
 
 With docker, you cannot directly reuse the same container and bind another dataset (\ ``-v``\ ) but you can create multiple containers to compartmentalize analysis of different datasets (e.g. my_analysis and my_analysis2). Containers build with those instructions are writable but not accessible with a file explorer or terminal. You can retrieve files or directories from a running or stopped container using ``docker cp my_analysis:$source_path $destination_path``. Alternatively you can directly create the container with another bind mount directory (\ ``-v``\ ) where analysis results can be saved and shared between the container and the host meaning that results from nanodisco analysis can be access with a file explorer or terminal. Note that, to maintain an organized container you can bind another directory containing a genome sequence file (.fasta) by adding ``-v /full_path/to/my_genomes:/home/nanodisco/reference`` or directly use ``docker cp $genome_path my_analysis:/home/nanodisco/reference/``. However, the container being writable also means that any modification made to the image's files, including system files and files from binded directories with ``-v`` (without ``:ro``\ ) will be permanent.

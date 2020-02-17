@@ -7,7 +7,7 @@
 - Integrate the two functionalities above together for *de novo* methylation motif discovery from microbiome, and metagenomic analysis.
 
 ## Authors' notes
-We are actively developing `nanodisco` to facilitate usage and broaden features. All feedbacks are more than welcome. You can reach us on twitter ([@iamfanggang](#https://twitter.com/iamfanggang) and [@AlanTourancheau](#https://twitter.com/AlanTourancheau)) or directly through the [GitHub issues system](#https://github.com/touala/smtm/issues).
+We are actively developing `nanodisco` to facilitate usage and broaden features. All feedbacks are more than welcome. You can reach us on twitter ([@iamfanggang](#https://twitter.com/iamfanggang) and [@AlanTourancheau](#https://twitter.com/AlanTourancheau)) or directly through the [GitHub issues system](#https://github.com/fanglab/nanodisco/issues).
 
 ## Content
 + [Installation](#Installation)
@@ -22,8 +22,8 @@ We are actively developing `nanodisco` to facilitate usage and broaden features.
 `nanodisco` is distributed as a fully functional image bypassing the need to install any dependencies others than the virtualization software. We currently recommend using Singularity (v3.2.1 and above), which can be installed on Linux systems and is often the preferred solution by HPC administrators ([Quick Start][Singularity Quick Start]). `nanodisco` was tested extensively with Singularity v3.2.1 and v3.5.2.
 
 ```sh
-singularity pull --name nanodisco.sif shub://touala/smtm # Download the image from singularity-hub.org
-singularity build nd_env nanodisco.sif # Create a container named nd_env
+singularity pull --name nanodisco.sif shub://fanglab/nanodisco # Download the image from singularity-hub.org
+singularity build nd_env nanodisco.sif                         # Create a container named nd_env
 ```
 
 ## Tool showcase
