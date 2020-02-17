@@ -25,7 +25,7 @@ Commands details
 preprocess
 ==========
 
-Extract reads (.fasta) from base called fast5 files and map reads on reference (meta)genome.
+Extract reads (.fasta) from base called fast5 files and map reads on a reference (meta)genome.
 
 **Usage:**
 
@@ -51,7 +51,7 @@ Extract reads (.fasta) from base called fast5 files and map reads on reference (
 chunk_info
 ==========
 
-Display chunks information regarding supplied reference (meta)genome.
+Display chunks information regarding the supplied reference (meta)genome.
 
 **Usage:**
 
@@ -65,7 +65,7 @@ Display chunks information regarding supplied reference (meta)genome.
 
 **Output:**
 
-* Default is number of chunks in the reference genome
+* Default is the number of chunks in the reference genome
 * With ``-t``, index of the first and last chunk to process for the targeted region
 
 .. _difference:
@@ -73,7 +73,7 @@ Display chunks information regarding supplied reference (meta)genome.
 difference
 ==========
 
-Compute nanopore signal difference between a native and a WGA dataset.
+Compute the current difference between a native and a WGA dataset.
 
 **Usage:**
 
@@ -90,12 +90,12 @@ Compute nanopore signal difference between a native and a WGA dataset.
      -r  : Path to a reference genome (i.e. fasta).
      -h : Print help.
 
-Advanced parameters. We recommend leaving them to default values:
+Advanced parameters. We recommend leaving them set to default values:
 
 .. code-block:: none
 
-     -f : First chunk to process. -l need to be set. All chunks between -f and -l will be processed. All genome processed if not provided.
-     -l : Last chunk to process. -f need to be set. All chunks between -f and -l will be processed. All genome processed if not provided.
+     -f : First chunk to process. -l needs to be set. All chunks between -f and -l will be processed. All genome processed if not provided.
+     -l : Last chunk to process. -f needs to be set. All chunks between -f and -l will be processed. All genome processed if not provided.
      -x : Execution type between seq or batch. Default is batch and seq is for development only.
      -a : IQR factor for outliers removal (0 to skip; smaller is harsher). Default is 1.5.
      -z : Type of additional signal normalization (0 is none, 1 is lm, and 2 is rlm). Default is 2.
@@ -133,7 +133,7 @@ Combine nanopore signal difference for all processed chunks in directory.
 .. code-block:: none
 
    nanodisco merge -d <path_difference> -o <path_output> -b <name_output>
-     -d : Path to current differences directory (*.rds produced from nanodisco difference
+     -d : Path to current differences directory (*.rds produced from nanodisco difference).
      -o : Path to output directory. Default is current directory.
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
      -h : Print help.
@@ -161,7 +161,7 @@ motif
      -r : Path to a reference genome (i.e. fasta).
      -h : Print help.
 
-Advanced parameters. We recommend leaving them to default values:
+Advanced parameters. We recommend leaving them set to default values:
 
 .. code-block:: none
 
@@ -186,7 +186,7 @@ Advanced parameters. We recommend leaving them to default values:
 characterize
 ============
 
-Predict the methylation type and fine map the modification within de novo discovered methylation motifs file.
+Predict the methylation type and fine map the modification within *de novo* discovered methylation motifs file.
 
 **Usage:**
 
@@ -252,7 +252,7 @@ Compute the methylation profile matrix for a metagenome sample (methylation feat
      -m : Comma separated list of motifs following IUPAC nucleotide code (e.g. GATC,CCWGG). -a & -m & --motifs_file are exclusive.
      --motifs_file : Path to file with list of motifs (one per line) following IUPAC nucleotide code. -a & -m & --motifs_file are exclusive.
 
-Advanced parameters. We recommend leaving them to default values:
+Advanced parameters. We recommend leaving them set to default values:
 
 .. code-block:: none
 
@@ -301,7 +301,7 @@ Select informative feature from a methylation profile matrix.
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
      -o : Path to output directory. Default is current directory.
 
-Advanced parameters. We recommend leaving them to default values:
+Advanced parameters. We recommend leaving them set to default values:
 
 .. code-block:: none
 
@@ -342,7 +342,7 @@ Compute the methylation profile matrix for selected features for a metagenome sa
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
      -o : Path to output directory. Default is current directory.
 
-Advanced parameters. We recommend leaving them to default values:
+Advanced parameters. We recommend leaving them set to default values:
 
 .. code-block:: none
 
@@ -381,7 +381,7 @@ Perform methylation binning, cluster metagenomic contigs according to methylatio
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
      -o : Path to output directory. Default is current directory.
 
-Advanced parameters. We recommend leaving them to default values:
+Advanced parameters. We recommend leaving them set to default values:
 
 .. code-block:: none
 
@@ -424,7 +424,7 @@ Plot results of methylation binning.
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
      -o : Path to output directory. Default is current directory.
 
-Advanced parameters. We recommend leaving them to default values:
+Advanced parameters. We recommend leaving them set to default values:
 
 .. code-block:: none
 

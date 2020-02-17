@@ -3,7 +3,7 @@
 nanodisco documentation
 =======================
 
-``nanodisco`` is a toolbox for *de novo* discovery of all the three types (6mA, 5mC and 4mC) of DNA methylation from individual bacteria and microbiome using nanopore sequencing. For microbiome, nanodisco also supports the use of DNA methylation pattern as natural epigenetic barcodes to facilitate high resolution metagenomic binning. Specifically, nanodisco can be used to:
+``nanodisco`` is a toolbox for *de novo* discovery of all the three types (6mA, 5mC and 4mC) of DNA methylation from individual bacteria and microbiomes using nanopore sequencing. For microbiomes, nanodisco also supports the use of DNA methylation patterns as natural epigenetic barcodes to facilitate high resolution metagenomic binning.
 
 Features
 --------
@@ -15,12 +15,12 @@ Features
 Authors' notes
 --------------
 
-We are actively developing ``nanodisco`` to facilitate usage and broaden features. All feedbacks are more than welcome. You can reach us on twitter (`@iamfanggang <https://twitter.com/iamfanggang>`_ and `@AlanTourancheau <https://twitter.com/AlanTourancheau>`_) or directly through the `GitHub issues system <https://github.com/fanglab/nanodisco/issues>`_.
+We are actively developing ``nanodisco`` to facilitate usage and broaden features. All feedback is more than welcome. You can reach us on twitter (`@iamfanggang <https://twitter.com/iamfanggang>`_ and `@AlanTourancheau <https://twitter.com/AlanTourancheau>`_) or directly through the `GitHub issues system <https://github.com/fanglab/nanodisco/issues>`_.
 
 Installation
 ------------
 
-``nanodisco`` is distributed as a fully functional image bypassing the need to install any dependencies others than the virtualization software. We currently recommend using Singularity (v3.2.1 and above), which can be installed on Linux systems and is often the preferred solution by HPC administrators (`Quick Start <https://sylabs.io/guides/3.5/user-guide/quick_start.html>`_). ``nanodisco`` was tested extensively in Singularity v3.2.1 and v3.5.2.
+``nanodisco`` is distributed as a fully functional image, bypassing the need to install any dependencies others than the virtualization software. We currently recommend using Singularity (v3.2.1 and above), which can be installed on Linux systems and is often the preferred solution by HPC administrators (`Quick Start <https://sylabs.io/guides/3.5/user-guide/quick_start.html>`_). ``nanodisco`` was tested extensively with Singularity v3.2.1 and v3.5.2.
 
 .. code-block:: sh
 
