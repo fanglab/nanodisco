@@ -34,7 +34,7 @@ To showcase the toolbox applications and facilitate the understanding of the met
 singularity build --sandbox nd_example nanodisco.sif # Create a writable container (directory) named nd_example
 singularity run --no-home -w nd_example              # Start an interactive shell to use nanodisco, type `exit` to leave
 ```
-The image retrieved from [Singularity Hub] with `singularity pull` (nanodisco.sif) is already build and can be reused at will. Containers build with those instructions are writable meaning that results from nanodisco analysis can be retrieve when the container is not running. Outputs for the following commands can be found at `./path/to/nd_example/home/nanodisco`.
+The image retrieved from [Singularity Hub] with `singularity pull` (nanodisco.sif) is already build and can be reused at will. Containers build with those instructions are writable meaning that results from nanodisco analysis can be retrieve when the container is not running. Outputs for the following commands can be found at `./path/to/nd_example/home/nanodisco/analysis`.
 
 ### Methylation typing and fine mapping
 **Goal:** Identify the specific type (6mA, 5mC or 4mC, namely *typing*) of a methylation motif, and identify specific position within the motif is methylated (namely *fine mapping*). Detailed method is described in the preprint.
