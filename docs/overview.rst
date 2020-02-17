@@ -39,7 +39,7 @@ Prepare the container for examples
    singularity run --no-home -w nd_example              # Start an interactive shell to use nanodisco, type `exit` to leave
 
 .. note::
-  The image retrieved from `Singularity Hub <https://singularity-hub.org/>`_ with ``singularity pull`` (e.g. nanodisco.sif) is already built and can be reused at will. The command ``singularity build`` create a container from the image as a writable directory called a ``sandbox`` (nd_example). The command ``singularity run`` starts a interactive shell within ``nd_example`` container. You can directly reuse the same ``sandbox`` directory or you can create multiple ``sandbox`` directories to compartmentalize analysis of different datasets (e.g. my_analysis and my_analysis2). Containers build with those instructions are writable meaning that results from nanodisco analysis can be retrieve when the container is not running.
+  The image retrieved from `Singularity Hub <https://singularity-hub.org/>`_ with ``singularity pull`` (e.g. nanodisco.sif) is already built and can be reused at will. The command ``singularity build`` create a container from the image as a writable directory called a ``sandbox`` (nd_example). The command ``singularity run`` starts a interactive shell within ``nd_example`` container. You can directly reuse the same ``sandbox`` directory or you can create multiple ``sandbox`` directories to compartmentalize analysis of different datasets (e.g. my_analysis and my_analysis2). Containers build with those instructions are writable meaning that results from nanodisco analysis can be retrieve when the container is not running. Outputs for the following commands can be found at ``./path/to/nd_example/home/nanodisco``.
 
 Methylation typing and fine mapping
 -----------------------------------
@@ -52,12 +52,13 @@ Methylation typing and fine mapping
 #. Reference genome file (.fasta)
 #. Methylation motifs for which one wants to perform typing and fine mapping
 
-**Outputs:** For each queried methylation motif, ``nanodisco`` identifies the methylation type and the methylated position summarized in a heatmap (``Motifs_classification_Ecoli_nn_model.pdf``). See Figure 4d in the preprint as an example.
+**Outputs:** For each queried methylation motif, ``nanodisco`` identifies the methylation type and the methylated position summarized in a heatmap (``analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.pdf``). See Figure 4d in the preprint as an example.
 
 .. figure:: figures/Motifs_classification_Ecoli_nn_model.png
    :width: 600
    :align: center
    :alt: E. coli methylation motifs classification results
+
    1. AACNNNNNNGTGC: highest value (85) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA
    2. CCWGG: highest value (95) is on the 5mC row with offset +1 (relative to the first base), meaning that the second base (C) is 5mC
    3. GATC: highest value (91) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA
@@ -91,7 +92,7 @@ Methylation binning of metagenomic contigs
 #. *De novo* discovered methylation motifs (pre-computed in the following example)
 #. (Optional) Annotation for metagenome contigs (e.g. species of origin) and List of contigs from Mobile Genetic Elements (MGEs)
 
-**Outputs:** t-SNE scatter plot that demonstrates the species level clustering of metagenomic contigs as presented in Figure 5a in the preprint.
+**Outputs:** t-SNE scatter plot that demonstrates the species level clustering of metagenomic contigs (``analysis/binning/Contigs_methylation_tsne_MGM1_motif.pdf``) as presented in Figure 5a in the preprint.
 
 .. figure:: figures/Contigs_methylation_tsne_MGM1_motif.png
    :width: 600

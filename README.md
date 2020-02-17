@@ -34,7 +34,7 @@ To showcase the toolbox applications and facilitate the understanding of the met
 singularity build --sandbox nd_example nanodisco.sif # Create a writable container (directory) named nd_example
 singularity run --no-home -w nd_example              # Start an interactive shell to use nanodisco, type `exit` to leave
 ```
-The image retrieved from [Singularity Hub] with `singularity pull` (nanodisco.sif) is already build and can be reused at will. Containers build with those instructions are writable meaning that results from nanodisco analysis can be retrieve when the container is not running.
+The image retrieved from [Singularity Hub] with `singularity pull` (nanodisco.sif) is already build and can be reused at will. Containers build with those instructions are writable meaning that results from nanodisco analysis can be retrieve when the container is not running. Outputs for the following commands can be found at `./path/to/nd_example/home/nanodisco`.
 
 ### Methylation typing and fine mapping
 **Goal:** Identify the specific type (6mA, 5mC or 4mC, namely *typing*) of a methylation motif, and identify specific position within the motif is methylated (namely *fine mapping*). Detailed method is described in the preprint.
@@ -44,7 +44,7 @@ The image retrieved from [Singularity Hub] with `singularity pull` (nanodisco.si
 2. Reference genome file (.fasta)
 3. Methylation motifs for which one wants to perform typing and fine mapping
 
-**Outputs:** For each queried methylation motif, `nanodisco` identifies the methylation type and the methylated position summarized in a heatmap (`Motifs_classification_Ecoli_nn_model.pdf`). See Figure 4d in the preprint as an example.
+**Outputs:** For each queried methylation motif, `nanodisco` identifies the methylation type and the methylated position summarized in a heatmap (`analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.pdf`). See Figure 4d in the preprint as an example.
 
 ![Output Characterize](/docs/figures/Motifs_classification_Ecoli_nn_model.png "E. coli methylation motifs classification results")
 <sub>*1. AACNNNNNNGTGC: highest value (85) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA*</sub><br />
@@ -69,7 +69,7 @@ In this example, the current differences file (`EC_difference.RDS`) was generate
 4. *De novo* discovered methylation motifs
 5. (Optional) Annotation for metagenome contigs (e.g. species of origin) and List of contigs from Mobile Genetic Elements (MGEs)
 
-**Outputs:** t-SNE scatter plots that demonstrates the species level clustering of metagenomic contigs as presented in the preprint Figure 5a.
+**Outputs:** t-SNE scatter plots that demonstrates the species level clustering of metagenomic contigs (`analysis/binning/Contigs_methylation_tsne_MGM1_motif.pdf`) as presented in the preprint Figure 5a.
 
 <p align="center">
   <img src="/docs/figures/Contigs_methylation_tsne_MGM1_motif.png" alt="MGM1 guided metagenomic contigs binning" width="500"/>
