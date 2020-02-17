@@ -144,7 +144,7 @@ When current differences are computed (see :ref:`Generating current differences<
 .. code-block:: sh
 
    get_data_bacteria # If not already retrieved
-   nanodisco motif -p 4 -b test_EC -d /home/nanodisco/dataset/EC_difference.RDS -o /home/nanodisco/analysis -r /home/nanodisco/reference/Ecoli_K12_MG1655_ATCC47076.fasta -a
+   nanodisco motif -p 4 -b Ecoli_example -d dataset/EC_difference.RDS -o analysis -r reference/Ecoli_K12_MG1655_ATCC47076.fasta -a
 
 Parameters ``-p`` number of threads, ``-b`` base sample name, ``-d`` path to current differences file, ``-o`` path to output directory, ``-a`` automated processing without user input (Optional, not recommended),  and ``-r`` path to reference genome. We highly recommend not using the ``-a`` option and refining the potential motif before proceeding. A subset of contigs can be processed using ``-c`` or ``--contigs_file``. See details and advanced parameters in :ref:`motif` section. **Runtime is ~20 min with 4 threads**.
 
