@@ -35,6 +35,7 @@ Methylation typing and fine mapping
    :alt: E. coli methylation motifs classification results
 
 .. admonition:: Interpretation of the above figure
+
    #. AACNNNNNNGTGC: highest value (85) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA
    #. CCWGG: highest value (95) is on the 5mC row with offset +1 (relative to the first base), meaning that the second base (C) is 5mC
    #. GATC: highest value (91) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA
