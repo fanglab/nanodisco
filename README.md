@@ -89,8 +89,10 @@ For a comprehensive description of `nanodisco` including installation guide, and
 
 ## Citation
 
+Tourancheau, A., Mead, E.A., Zhang, X.-s. & Fang, G. Discovering and exploiting multiple types of DNA methylation from individual bacteria and microbiome using nanopore sequencing. *bioRxiv* (2020). doi:[10.1101/2020.02.18.954636][DOI]
 
 [Singularity]: https://sylabs.io/singularity/
 [Singularity Hub]: https://singularity-hub.org/
 [Singularity Quick Start]: https://sylabs.io/guides/3.5/user-guide/quick_start.html
 [Full Documentation]: https://nanodisco.readthedocs.io/en/latest/overview.html
+[DOI]: https://doi.org/10.1101/2020.02.18.954636
