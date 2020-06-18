@@ -58,3 +58,8 @@ FAQ
 
 * Q11: What are .RDS and .rds files?
      Those files are ``R``'s own data file format, which conserved all object properties. Use ``readsRDS`` function to read a R data file. 
+
+.. _q_eukaryote:
+
+* Q12: Is it recommended to use ``nanodisco`` for methylation detection in eukaryotic species, such as human?
+     ``nanodisco`` is currently focused on *de novo* discovering, typing and fine mapping methylation motifs, the key challenge that prevents broad use of nanopore sequencing for the *de novo* study of bacterial epigenomes. We do not recommend using ``nanodisco`` to look for methylation in human because 1) in the human genome, 5mC is mostly at CpG sites, for which multiple existing tools, such as `nanopolish <https://github.com/jts/nanopolish>`_ and `tombo <https://github.com/nanoporetech/tombo>`_, have been specifically trained; 2) for 6mA/4mC, if they exists in the human genome, it is at much lower level than 5mC, and would probably require different strategies for detection. Please see `Q7 <https://nanodisco.readthedocs.io/en/latest/faq.html#q-methylation-event>`_ in the FAQ page for more information. 
