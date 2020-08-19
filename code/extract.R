@@ -9,6 +9,71 @@ load.libraries.extract <- function(){
 	library("doMC")
 	library("optparse")
 	library("progress")
+	library("Biostrings")
+	library("stringr")
+}
+
+extract.basecall.version <- function(path_first_fast5, path_basecalling){
+	f5_data <- h5readAttributes(path_first_fast5, path_basecalling) # Extract read data (fastq, move, and trace)
+	
+	if(length(f5_data)==0){
+		# This is likely a live base called read with MinKNOW
+		f5_data <- h5readAttributes(path_first_fast5, "/UniqueGlobalKey/tracking_id") # Extract read data (fastq, move, and trace)
+
+		basecaller <- "Guppy_live"
+		bc_version <- f5_data$guppy_version
+	}else{
+		# This is likely an "offline" base calling
+		if(grepl("Albacore",f5_data$name)){
+			basecaller <- "Albacore"
+			bc_version <- f5_data$version
+		}else if(grepl("Guppy",f5_data$name)){
+			basecaller <- "Guppy"
+			bc_version <- f5_data$version
+		}else{
+			basecaller <- "Unknown"
+			bc_version <- f5_data$version
+		}
+	}
+
+	return(data.frame(basecaller=basecaller, version=bc_version))
+}
+
+find.basecall.versions <- function(path_fast5_dir){
+	# List fast5 files
+	list_fast5_files <- list.files(path_fast5_dir, pattern="*.fast5", recursive=TRUE)
+
+	# Extract only 1st path
+	path_first_fast5 <- paste0(gsub("/$","",normalizePath(path_fast5_dir)),"/",head(list_fast5_files,1))
+	f5_content <- h5ls(path_first_fast5)
+
+	if(any(grepl("^/read_.*",f5_content$group, perl=TRUE)==TRUE)){
+		# This is a multi-read fast5 file
+		path_first_read <- f5_content$group[grepl("^/read_.*",f5_content$group, perl=TRUE)][1]
+		
+		list_basecalling <- gsub("^/read_.*/Analyses/(.*)/BaseCalled_template","\\1",subset(f5_content, grepl(path_first_read, group) & name=="Fastq")$group)
+		available_versions <- foreach(basecall=list_basecalling, .combine=rbind) %do% {
+			path_basecalling <- paste0(path_first_read,"/Analyses/",basecall)
+
+			available_version <- extract.basecall.version(path_first_fast5, path_basecalling)
+			available_version$basecall_group <- basecall
+
+			return(available_version)
+		}
+	}else if(any(grepl("^/Analyses",f5_content$group, perl=TRUE)==TRUE)){
+		# This is NOT a multi-read fast5 file
+		list_basecalling <- gsub("^/Analyses/(.*)/BaseCalled_template","\\1",subset(f5_content, name=="Fastq")$group)
+		available_versions <- foreach(basecall=list_basecalling, .combine=rbind) %do% {
+			path_basecalling <- paste0("/Analyses/",basecall)
+
+			available_version <- extract.basecall.version(path_first_fast5, path_basecalling)
+			available_version$basecall_group <- basecall
+
+			return(available_version)
+		}
+	}
+
+	return(available_versions)
 }
 
 check.input.extract <- function(opt){
@@ -54,7 +119,28 @@ check.input.extract <- function(opt){
 		cat("Parameter -s/--seq_type is not recognized. Please select between fastq or fasta (short option fq or fa).\n")
 		quit(save="no", status=4)
 	}
-
+	# Control requested basecalling version available
+	if(opt$basecall_version %in% c("default")){
+		opt$basecall_group <- "Basecall_1D_000" # Use the default location
+	}else{
+		if(!grepl(":",opt$basecall_version)){
+			cat("Parameter --basecall_version is not recognized. Please provide the basecaller name and version (e.g. Guppy:3.2.4).\n")
+			quit(save="no", status=4)
+		}
+		basecall_version <- strsplit(opt$basecall_version,":")[[1]]
+		available_versions <- find.basecall.versions(opt$path_input)
+		matching_version <- subset(available_versions, basecaller==basecall_version[1] & grepl(paste0("^",basecall_version[2]), version))
+		
+		if(nrow(matching_version)==1){
+			opt$basecall_group <- matching_version$basecall_group
+		}else{
+			cat("Parameter --basecall_version don't match available basecalling. Please provide the basecaller name and version (e.g. Guppy:3.2.4).\n")
+			cat("Available basecalling are displayed below.\n")
+			print(available_versions)
+			quit(save="no", status=4)
+		}
+	}
+	
 	return(opt)
 }
 
@@ -85,7 +171,7 @@ terminate.progress.bar <- function(pb, chunk_list_fast5_files, nbCPU){
 	pb$tick(length(chunk_list_fast5_files)/nbCPU)
 }
 
-extract.sequence <- function(path_fast5, sample_name, path_output, nbCPU, chunk_size, seq_type){
+extract.sequence <- function(path_fast5, sample_name, path_output, nbCPU, chunk_size, seq_type, basecall_group){
 	list_fast5_files <- list.files(paste0(path_fast5), pattern="*.fast5", recursive=TRUE)
 
 	chunk_list_fast5_files <- split(list_fast5_files, ceiling(seq_along(list_fast5_files)/chunk_size))
@@ -107,9 +193,9 @@ extract.sequence <- function(path_fast5, sample_name, path_output, nbCPU, chunk_
 		subset_sequence <- foreach(f5_file=fast5_files) %do% {
 			f5_file_path <- normalizePath(paste0(path_fast5, f5_file))
 			f5_content <- h5ls(f5_file_path)
-			if(any(grepl("^/read_.*/Analyses/Basecall_1D_000/BaseCalled_template",f5_content$group, perl=TRUE)==TRUE)){
+			if(any(grepl(paste0("^/read_.*/Analyses/",basecall_group,"/BaseCalled_template"),f5_content$group, perl=TRUE)==TRUE)){
 				# This is a multi-read fast5 file
-				list_fast5_reads <- unique(f5_content$group[grepl("^/read_.*/Analyses/Basecall_1D_000/BaseCalled_template",f5_content$group, perl=TRUE)])
+				list_fast5_reads <- unique(f5_content$group[grepl(paste0("^/read_.*/Analyses/",basecall_group,"/BaseCalled_template"),f5_content$group, perl=TRUE)])
 				list_linear_sequence <- foreach(f5_read_data=list_fast5_reads) %do% { # , .combine=c
 					f5_data <- h5read(f5_file_path, f5_read_data) # Extract read data (fastq, move, and trace)
 					detail_fastq <- strsplit(f5_data$Fastq,"\n")[[1]] # Isolate fastq
@@ -123,9 +209,9 @@ extract.sequence <- function(path_fast5, sample_name, path_output, nbCPU, chunk_
 				}
 				linear_sequence <- do.call(paste0,list_linear_sequence) # Put all fasta/fastq entries in same string
 
-			}else if(any(grepl("/Analyses/Basecall_1D_000/BaseCalled_template",f5_content$group, fixed=TRUE)==TRUE)){
+			}else if(any(grepl(paste0("^/Analyses/",basecall_group,"/BaseCalled_template"),f5_content$group, perl=TRUE)==TRUE)){
 				# This is NOT a multi-read fast5 file
-				f5_data <- h5read(f5_file_path,"/Analyses/Basecall_1D_000/BaseCalled_template") # Extract read data (fastq, move, and trace)
+				f5_data <- h5read(f5_file_path,paste0("/Analyses/",basecall_group,"/BaseCalled_template")) # Extract read data (fastq, move, and trace)
 				detail_fastq <- strsplit(f5_data$Fastq,"\n")[[1]] # Isolate fastq
 				read_name <- gsub("^@",">",strsplit(detail_fastq[1]," ")[[1]][1]) # Edit read name to match indexed formating
 				read_name_indexed <- paste0(read_name," ",gsub(".fast5","",basename(f5_file_path))," ",f5_file_path) # Assemble read name and index
@@ -165,7 +251,8 @@ option_list <- list(
 	make_option(c("-b", "--base_name"), type="character", default=NULL, help="Sequence file output name (<base_name>.<seq_type>)", metavar="<name>"),
 	make_option(c("-p", "--nb_threads"), type="integer", default=1, help="Number of threads (default is 1)", metavar="<integer>"),
 	make_option(c("-s", "--seq_type"), type="character", default=NULL, help="Type of sequence to extract, fastq/fa or fastq/fq", metavar="<fq/fa/fastq/fasta>"),
-	make_option(c("-c", "--nb_chunks"), type="integer", default=40, help="Number of reads per chunks (default is 40; if single-fast5s then best nb_chunks >= nb_threads, if multi-fast5 then best nb_chunks == nb_threads)", metavar="<integer>")
+	make_option(c("-c", "--nb_chunks"), type="integer", default=40, help="Number of reads per chunks (default is 40; if single-fast5s then best nb_chunks >= nb_threads, if multi-fast5 then best nb_chunks == nb_threads)", metavar="<integer>"),
+	make_option(c("--basecall_version"), type="character", default="default", help="Basecalling version (when mutliple ones available)", metavar="<basecaller:version>")
 )
 
 default_usage <- c("%prog -i <fast5_directory> -o <path_output> -b <sample_name> -p <nb_threads> -c <nb_reads_per_chunks> -s <fa|fq>")
@@ -182,5 +269,6 @@ path_output <- paste0(gsub("/$","",normalizePath(opt$path_output)),"/") # Deal w
 nb_threads <- opt$nb_threads
 nb_chunks <- opt$nb_chunks
 seq_type <- opt$seq_type
+basecall_group <- opt$basecall_group
 
-extract.sequence(path_input, base_name, path_output, nb_threads, nb_chunks, seq_type)
+extract.sequence(path_input, base_name, path_output, nb_threads, nb_chunks, seq_type, basecall_group)

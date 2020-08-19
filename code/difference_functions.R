@@ -95,15 +95,24 @@ extract.basecall.version <- function(path_indexed_fasta){
 
 	f5_data <- h5readAttributes(path_first_fast5, path_basecalling) # Extract read data (fastq, move, and trace)
 
-	if(grepl("Albacore",f5_data$name)){
-		basecaller <- "Albacore"
-		bc_version <- f5_data$version
-	}else if(grepl("Guppy",f5_data$name)){
-		basecaller <- "Guppy"
-		bc_version <- f5_data$version
+	if(length(f5_data)==0){
+		# This is likely a live base called read with MinKNOW
+		f5_data <- h5readAttributes(path_first_fast5, "/UniqueGlobalKey/tracking_id") # Extract read data (fastq, move, and trace)
+
+		basecaller <- "Guppy_live"
+		bc_version <- f5_data$guppy_version
 	}else{
-		basecaller <- "Unknown"
-		bc_version <- f5_data$version
+		# This is likely an "offline" base calling
+		if(grepl("Albacore",f5_data$name)){
+			basecaller <- "Albacore"
+			bc_version <- f5_data$version
+		}else if(grepl("Guppy",f5_data$name)){
+			basecaller <- "Guppy"
+			bc_version <- f5_data$version
+		}else{
+			basecaller <- "Unknown"
+			bc_version <- f5_data$version
+		}
 	}
 
 	return(c(basecaller, bc_version))
@@ -111,8 +120,8 @@ extract.basecall.version <- function(path_indexed_fasta){
 
 check.basecall.version <- function(path_input, sample_name_nat, sample_name_wga){
 	# Get basecaller version from fast5 files
-	bc_version_nat <- extract.basecall.version(paste0(path_input,sample_name_nat,".fasta"))
 	bc_version_wga <- extract.basecall.version(paste0(path_input,sample_name_wga,".fasta"))
+	bc_version_nat <- extract.basecall.version(paste0(path_input,sample_name_nat,".fasta"))
 
 	# Compare basecalling version
 	if(!identical(bc_version_nat,bc_version_wga)){
@@ -175,44 +184,6 @@ relative.path <- function(x, y){
 	}
 
 	return(path_x_relative_to_y)
-}
-
-extract.1D.fasta <- function(path_fast5, sample_name, path_input, nb_threads, chunk_size){
-	list_fast5_files <- list.files(paste0(path_fast5), pattern="*.fast5", recursive=TRUE)
-
-	chunk_list_fast5_files <- split(list_fast5_files, ceiling(seq_along(list_fast5_files)/chunk_size))
-
-	registerDoMC(cores=nb_threads)
-	fasta <- foreach(fast5_files=chunk_list_fast5_files) %dopar% {
-		tmp_fasta <- foreach(f5_file=fast5_files) %do% {
-			f5_file_path <- paste0(relative.path(path_fast5, path_input), f5_file)
-			f5_content <- h5ls(f5_file_path)
-			if(any(grepl("/Analyses/Basecall_1D_000/BaseCalled_template",f5_content$group,fixed=T)==T)){
-				f5_1Ddata <- h5read(f5_file_path,"/Analyses/Basecall_1D_000/BaseCalled_template")
-				detail_fastq <- strsplit(f5_1Ddata$Fastq,"\n")[[1]]
-				read_name <- gsub("_Basecall_1D_template", "", gsub("@", ">", detail_fastq[1]))
-				fasta_seq <- detail_fastq[2]
-				res <- paste0(read_name," ",f5_file_path,"\n",fasta_seq)
-			}else{
-				res <- "uncalled"
-			}
-
-			return(res)
-		}
-
-		return(do.call(rbind,tmp_fasta))
-	}
-	registerDoSEQ()
-	fasta <- do.call(rbind,fasta)
-
-	# Remove uncalled reads and print warning
-	isnot_basecalled <- grepl("uncalled",fasta,fixed=T)
-	if(any(isnot_basecalled)){
-		warning(paste0(sum(isnot_basecalled==TRUE)," reads weren't basecalled."))
-		fasta <- fasta[!isnot_basecalled]
-	}
-
-	write.table(fasta, file=paste0(path_input,sample_name,".fasta"), quote=F, row.names=F, col.names=F)
 }
 
 generate.genome.chunks.information <- function(genome, chunk_size){

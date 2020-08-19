@@ -255,13 +255,13 @@ check.model.version <- function(diff_data){
 					}
 				}else{ # Version not supported
 					cat(paste0("Models for ",basecaller," version ",bc_version," is not available.\n"))
-					cat("Motif characterization will still proceed with the default model but obtained results might not optimal.\n")
+					cat("Motif characterization will still proceed with the default model but obtained results might not be optimal.\n")
 					cat("Additional information can be found in our GitHub repository.\n")
 					bc_version <- "v2.3.4"
 				}
 			}else if(basecaller=="Guppy"){ # Base caller is recognized but not supported
 				cat(paste0("Models for ",basecaller," version ",bc_version," is not yet available but we are working on it.\n"))
-				cat("Motif characterization will still proceed with the default model but obtained results might not optimal.\n")
+				cat("Motif characterization will still proceed with the default model but obtained results might not be optimal.\n")
 				cat("Additional information can be found in our GitHub repository.\n")
 				basecaller <- "Albacore"
 				bc_version <- "v2.3.4"
@@ -2345,12 +2345,12 @@ prepare.classification.data <- function(methylation_signal, strain_id, motif_sum
 
 	if(data_type=="train"){
 		motifs_signature <- motifs_signature %>%
-			mutate(id=paste0(strain_id,"_",motif_summary$explicit_motif[match(motif,motif_summary$motif)],"_",motif_summary$mod_type[match(motif,motif_summary$motif)],"_",gsub("_","",contig),"_",pos_motif,"_",dir,"_",strand)) %>%
+			mutate(id=paste0(gsub("_","",strain_id),"_",motif_summary$explicit_motif[match(motif,motif_summary$motif)],"_",motif_summary$mod_type[match(motif,motif_summary$motif)],"_",gsub("_","",contig),"_",pos_motif,"_",dir,"_",strand)) %>%
 			dplyr::select(c(id,mean_diff,distance)) %>%
 			spread(distance, mean_diff)
 	}else if(data_type=="classify"){
 		motifs_signature <- motifs_signature %>%
-			mutate(id=paste0(strain_id,"_",motif,"_",gsub("_","",contig),"_",pos_motif,"_",dir,"_",strand)) %>%
+			mutate(id=paste0(gsub("_","",strain_id),"_",motif,"_",gsub("_","",contig),"_",pos_motif,"_",dir,"_",strand)) %>%
 			dplyr::select(c(id,mean_diff,distance)) %>%
 			spread(distance, mean_diff)
 	}
@@ -3761,17 +3761,17 @@ draw.classifier.results <- function(performance_classifier, motif_summary, base_
 # For unknown motifs 
 select.motif <- function(classification_data, motif){
 	motif_annotation <- attr(classification_data, "annotation_motif")
-	row_to_keep <- grepl(motif, motif_annotation$id)
+	row_to_keep <- grepl(motif, as.character(motif_annotation$id))
 
-	classification_data <- classification_data[row_to_keep,]
-	attr(classification_data, "annotation_motif") <- attr(classification_data, "annotation_motif")[row_to_keep,]
-	attr(classification_data, "annotation_mod") <- attr(classification_data, "annotation_mod")[row_to_keep,]
-	attr(classification_data, "annotation_dir") <- attr(classification_data, "annotation_dir")[row_to_keep,]
-	if("annotation_strain" %in% names(attributes(classification_data))){
-		attr(classification_data, "annotation_strain") <- attr(classification_data, "annotation_strain")[row_to_keep,]
-	}
+	subset_classification_data <- classification_data[row_to_keep,]
+	attr(subset_classification_data, "annotation_motif") <- attr(classification_data, "annotation_motif")[row_to_keep,]
+	# attr(subset_classification_data, "annotation_mod") <- attr(classification_data, "annotation_mod")[row_to_keep,]
+	# attr(subset_classification_data, "annotation_dir") <- attr(classification_data, "annotation_dir")[row_to_keep,]
+	# if("annotation_strain" %in% names(attributes(classification_data))){
+	# 	attr(subset_classification_data, "annotation_strain") <- attr(classification_data, "annotation_strain")[row_to_keep,]
+	# }
 
-	return(classification_data)
+	return(subset_classification_data)
 }
 
 classify.detected.motifs <- function(methylation_signal, strain_id, motif_center_summary, model, genome, min_cov, keepIsolated, iupac_nc, nbCPU){
@@ -3793,7 +3793,7 @@ classify.detected.motifs <- function(methylation_signal, strain_id, motif_center
 	print_message("  Classify motif(s)")
 	classification_results <- foreach(idx_motif=seq(1, nrow(motif_center_summary)), .combine=rbind) %do% {
 		# Select motif & approximate modification position
-		motif <- paste0(strain_id,"_",motif_center_summary$motif[idx_motif])
+		motif <- paste0(gsub("_","",strain_id),"_",motif_center_summary$motif[idx_motif])
 		possible_mod_pos <- motif_center_summary$possible_mod_pos[idx_motif]
 
 		# Select corresponding broad signature
@@ -3808,7 +3808,7 @@ classify.detected.motifs <- function(methylation_signal, strain_id, motif_center
 		features_classification_data <- features_classification_data %>% dplyr::select("label",paste0("pos",seq(1,ncol(features_classification_data)-1))) # Reorder columns
 
 		# Characterize each motif occurrences
-		print_message(paste0("    Classifing ",motif))
+		print_message(paste0("    Classifing ",motif_center_summary$motif[idx_motif]))
 		if(!is.null(model$modelInfo$library)){
 			if(model$modelInfo$library=="randomForest"){
 				prediction_results <- predict(model, subset(features_classification_data, select=-c(label)))

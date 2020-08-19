@@ -23,14 +23,14 @@ path_output_def="Specify the path of output results (current_difference file and
 wga_name_def="Specify the name of WGA sample (same than for nanodisco preprocess -s <sample_name>)."
 nat_name_def="Specify the name of native sample (same than for nanodisco preprocess -s <sample_name>)."
 genome_def="Specify the path of reference genome (.fasta)."
-sig_norm_def="Specify the type of correction for strand bias (ori|revc, default is revc)"
-IQR_factor_def="Specify the IQR factor for outliers removal (0.0 to skip; default is 1.5; smaller is harsher)"
-normalized_def="Specify the type of normalization (0:nanopolish only, 1: np+lm, 2: np+rlm; default is 2)"
-min_coverage_def="Specify the minimum number of events per position (default is 5)"
-map_type_def="Specify the type of filtering for mapping (default is noAddSupp, see realign_events.sh for other types)"
-min_read_length_def="Specify the minimum mapped read length (default is 0)"
-path_ont_model_def="Specify the path to the normalization model (default is r9.4_450bps.nucleotide.6mer.template.model from nanopolish)"
-exec_type_def="Specify which type of exectution is required (batch or seq; default is batch; seq is for developpement only)"
+sig_norm_def="Specify the type of correction for strand bias (ori|revc, default is revc)."
+IQR_factor_def="Specify the IQR factor for outliers removal (0.0 to skip; default is 1.5; smaller is harsher)."
+normalized_def="Specify the type of normalization (0:nanopolish only, 1: np+lm, 2: np+rlm; default is 2)."
+min_coverage_def="Specify the minimum number of events per position (default is 5)."
+map_type_def="Specify the type of filtering for mapping (default is noAddSupp, see realign_events.sh for other types)."
+min_read_length_def="Specify the minimum mapped read length (default is 0)."
+path_ont_model_def="Specify the path to the normalization model (default is r9.4_450bps.nucleotide.6mer.template.model from nanopolish)."
+exec_type_def="Specify which type of exectution is required (batch or seq; default is batch; seq is for developpement only)."
 
 ## Default parameters
 # Best parameters for individual bacteria processing
@@ -325,9 +325,13 @@ export -f compute_difference # Export the function to be accessible by parallel
 # Process genomic chunks; can be speed up by increasing nb_chunks but will impact memory usage
 # ~6 min with 25 threads available (nb_jobs=5, nb_chunks=1 and nb_threads=5), chunk by chunk (each 5000 bp)
 # Analysis logs are conserved in ./difference_log/1 (folder are named <first_chunk>_<last_chunk>)
-for chunk in $(seq $first_chunk $nb_chunks $last_chunk); do
-  chunk_to=$((chunk+$nb_chunks-1))
-  chunk_to=$((chunk_to>last_chunk ? last_chunk : chunk_to))
-  echo "${chunk}_${chunk_to}"
-done | parallel --no-notice --progress --results $path_output/difference_log -P $nb_jobs compute_difference {} 1> /dev/null
+if [ $nb_jobs -eq 1 ]; then
+  compute_difference "${first_chunk}_${last_chunk}"
+else
+  for chunk in $(seq $first_chunk $nb_chunks $last_chunk); do
+    chunk_to=$((chunk+$nb_chunks-1))
+    chunk_to=$((chunk_to>last_chunk ? last_chunk : chunk_to))
+    echo "${chunk}_${chunk_to}"
+  done | parallel --no-notice --progress --results $path_output/difference_log -P $nb_jobs compute_difference {} 1> /dev/null
+fi
 

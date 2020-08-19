@@ -26,6 +26,14 @@ tar -zxf data_default.tar.gz -C /home && rm data_default.tar.gz
 # Install Nanopolish version 0.11.0
 git clone --recursive -b v0.11.0 https://github.com/jts/nanopolish.git nanopolish-0.11.0
 cd nanopolish-0.11.0
+
+# Edit Makefile to update dead link
+sed -i -e 's@\-e $(EIGEN_VERSION).tar.bz2@\-e eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
+sed -i -e 's@wget http://bitbucket.org/eigen/eigen/get/$(EIGEN_VERSION).tar.bz2@wget https://gitlab.com/libeigen/eigen/\-/archive/$(EIGEN_VERSION)/eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
+sed -i -e 's@tar \-xjf $(EIGEN_VERSION).tar.bz2@tar \-xjf eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
+sed -i -e 's@mv eigen\-eigen\-\* eigen@mv eigen\-$(EIGEN_VERSION) eigen@g' Makefile
+
+# Resume Nanopolish install
 make
 cp nanopolish /usr/bin/nanopolish
 cp etc/r9-models/r9.4_450bps.nucleotide.6mer.template.model /usr/bin/r9.4_450bps.nucleotide.6mer.template.model
