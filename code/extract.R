@@ -252,7 +252,7 @@ option_list <- list(
 	make_option(c("-p", "--nb_threads"), type="integer", default=1, help="Number of threads (default is 1)", metavar="<integer>"),
 	make_option(c("-s", "--seq_type"), type="character", default=NULL, help="Type of sequence to extract, fastq/fa or fastq/fq", metavar="<fq/fa/fastq/fasta>"),
 	make_option(c("-c", "--nb_chunks"), type="integer", default=40, help="Number of reads per chunks (default is 40; if single-fast5s then best nb_chunks >= nb_threads, if multi-fast5 then best nb_chunks == nb_threads)", metavar="<integer>"),
-	make_option(c("--basecall_version"), type="character", default="default", help="Basecalling version (when mutliple ones available)", metavar="<basecaller:version>")
+	make_option(c("--basecall_version"), type="character", default="default", help="Basecalling version (when multiple ones available)", metavar="<basecaller:version>")
 )
 
 default_usage <- c("%prog -i <fast5_directory> -o <path_output> -b <sample_name> -p <nb_threads> -c <nb_reads_per_chunks> -s <fa|fq>")

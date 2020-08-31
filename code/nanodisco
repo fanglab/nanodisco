@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nanodisco_version="dev"
+nanodisco_version="v1.0.1_dev"
 
 ###
 # Wrapper for nanodisco subtasks

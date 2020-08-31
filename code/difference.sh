@@ -31,6 +31,7 @@ map_type_def="Specify the type of filtering for mapping (default is noAddSupp, s
 min_read_length_def="Specify the minimum mapped read length (default is 0)."
 path_ont_model_def="Specify the path to the normalization model (default is r9.4_450bps.nucleotide.6mer.template.model from nanopolish)."
 exec_type_def="Specify which type of exectution is required (batch or seq; default is batch; seq is for developpement only)."
+basecall_version_def="Specify which basecalling version need to be used for tracking when multiple ones are available (default is first in fast5)."
 
 ## Default parameters
 # Best parameters for individual bacteria processing
@@ -42,6 +43,7 @@ map_type="noAddSupp"           # type of alignment filtering
 min_read_length=0              # minimum mapped read length
 path_ont_model='/usr/bin/r9.4_450bps.nucleotide.6mer.template.model' # Path to 6mer model for event signal normalization
 exec_type="batch"              # seq is for developpement only
+basecall_version="default"     # basecaller version to tag
 
 # Read options
 while [[ $# -gt 0 ]]; do
@@ -231,6 +233,11 @@ while [[ $# -gt 0 ]]; do
         exit 5
       fi
       ;;
+    --basecall_version)
+      basecall_version="$2"
+      shift # pass argument
+      shift # pass value
+      ;;
     -h|--help) # Print help
       echo "Usage: nanodisco difference -nj <nb_jobs> -nc <nb_chunks> -p <nb_threads> [-f <first_chunk> -l <last_chunk>] -i <path_input> -o <path_output> -w <name_WGA> -n <name_native> -r <path_genome> [+ advanced parameters]" >&2
       echo -e "\tAdditional information can be found in our GitHub repository." >&2
@@ -319,7 +326,7 @@ if [[ ! -f "${path_input%/}/$nat_name.sorted.bam.bai" ]]; then
 fi
 
 # Create a temporary function with requested parameters
-eval "compute_difference() { chunks=\$1; Rscript --vanilla /home/nanodisco/code/difference_chunks.R -p $nb_threads -x $exec_type -f \${chunks%_*} -l \${chunks#*_} -i $path_input -o $path_output -w $wga_name -n $nat_name -r $genome -b $sig_norm -a $IQR_factor -z $normalized -e $min_coverage -j $map_type -k $min_read_length -t $path_ont_model; }"
+eval "compute_difference() { chunks=\$1; Rscript --vanilla /home/nanodisco/code/difference_chunks.R -p $nb_threads -x $exec_type -f \${chunks%_*} -l \${chunks#*_} -i $path_input -o $path_output -w $wga_name -n $nat_name -r $genome -b $sig_norm -a $IQR_factor -z $normalized -e $min_coverage -j $map_type -k $min_read_length -t $path_ont_model --basecall_version $basecall_version; }"
 export -f compute_difference # Export the function to be accessible by parallel
 
 # Process genomic chunks; can be speed up by increasing nb_chunks but will impact memory usage

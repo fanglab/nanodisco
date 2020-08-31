@@ -342,6 +342,7 @@ merge.stat.chunks <- function(data_path, inSilico=FALSE){
 
 	stat_data <- foreach(stat_file=stat_files_info$file_path, .combine=rbind.fill, .multicombine=TRUE, .maxcombine=500) %do% { # TODO progress
 		tmp_stat_data <- readRDS(stat_file)
+
 		#Reorder column TODO fix scoring.position when not enough data; default res
 		if(inSilico){
 			if(any(grepl("contig",colnames(tmp_stat_data)))){
@@ -1611,7 +1612,7 @@ readline_clean <- function(prompt){
 	return(response)
 }
 
-auto.comfirm.motif <- function(discovered_motifs, potential_motif, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle, score_threshold=2){
+auto.confirm.motif <- function(discovered_motifs, potential_motif, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle, score_threshold=2){
 	refinement_data <- refine.motif(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle)
 
 	if(!is.null(refinement_data)){
@@ -1622,9 +1623,16 @@ auto.comfirm.motif <- function(discovered_motifs, potential_motif, final_stat_da
 			summarize(bases=paste0(mutation_type, collapse="")) %>%
 			group_by(pos_mutation) %>%
 			mutate(code=as.character(iupac_nc$code[grepl(paste0("^",bases,"$"), as.character(iupac_nc$choice))]))
-		paste0(res$code, collapse="")
-	}else{
+		if(nrow(res)>3){
+			# Automated motif refinment results
 
+			return(paste0(res$code, collapse=""))
+		}else{
+			# Automated motif refinment is too short
+			return(NA)
+		}
+	}else{
+		return(NA)
 	}
 }
 
@@ -1704,6 +1712,7 @@ motif.detection <- function(motifs_peaks_data, final_stat_data, genome, iupac_nc
 
 	nbLoops <- 1
 	continue_research <- TRUE
+ 	no_progress <- FALSE
 	while(continue_research){ # TODO Stop when top hits quantile below x threshold? When no more motifs?
 		if(is.na(threshold)){
 			selected_peaks_data <- filter.best.peaks(motifs_peaks_data, nb_peaks)
@@ -1731,16 +1740,24 @@ motif.detection <- function(motifs_peaks_data, final_stat_data, genome, iupac_nc
 		print_message(paste0(c("Potentials motifs:", paste(potential_motifs)), collapse=" "))
 		if(!is.null(potential_motifs)){
 			if(automated){
-				# discovered_motifs <- unique(c(discovered_motifs, potential_motifs))
 				current_discovered_motifs <- discovered_motifs
+
 				newly_discovered_motifs <- foreach(potential_motif=potential_motifs, .combine=c) %do% {
 					graph_subtitle <- paste0("sf: ",smooth_func,", sw: ",smooth_win_size,", pw: ",peak_win_size,", stat: ",stat_val,", np: ",nb_peaks,", th: ",threshold)
-					tmp_newly_discovered_motifs <- auto.comfirm.motif(current_discovered_motifs, potential_motif, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle, score_threshold)
+					tmp_newly_discovered_motifs <- auto.confirm.motif(current_discovered_motifs, potential_motif, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle, score_threshold)
 					current_discovered_motifs <- unique(c(current_discovered_motifs, tmp_newly_discovered_motifs))
+					current_discovered_motifs <- current_discovered_motifs[!is.na(current_discovered_motifs)] # Remove potential unrefined motif
 
 					return(tmp_newly_discovered_motifs)
 				}
-				discovered_motifs <- unique(c(discovered_motifs, newly_discovered_motifs))	
+
+ 				if(all(is.na(newly_discovered_motifs))){
+					# No more motif found
+ 					no_progress <- TRUE
+ 				}else{
+					discovered_motifs <- unique(c(discovered_motifs, newly_discovered_motifs))	
+					discovered_motifs <- discovered_motifs[!is.na(discovered_motifs)] # Remove potential unrefined motif
+ 				}
 			}else{
 				newly_discovered_motifs <- foreach(potential_motif=potential_motifs, .combine=c) %do% {
 					graph_subtitle <- paste0("sf: ",smooth_func,", sw: ",smooth_win_size,", pw: ",peak_win_size,", stat: ",stat_val,", np: ",nb_peaks,", th: ",threshold)
@@ -1755,6 +1772,9 @@ motif.detection <- function(motifs_peaks_data, final_stat_data, genome, iupac_nc
 		print_message(paste0(c("Discovered motifs:", paste(discovered_motifs)), collapse=" "))
 
 		if(automated && is.null(potential_motifs) ){
+			# No more motif found in automated processing
+			continue_research <- FALSE
+		}else if(automated && no_progress){
 			# No more motif found in automated processing
 			continue_research <- FALSE
 		}else if(automated && !is.null(potential_motifs)){
@@ -3765,10 +3785,10 @@ select.motif <- function(classification_data, motif){
 
 	subset_classification_data <- classification_data[row_to_keep,]
 	attr(subset_classification_data, "annotation_motif") <- attr(classification_data, "annotation_motif")[row_to_keep,]
-	# attr(subset_classification_data, "annotation_mod") <- attr(classification_data, "annotation_mod")[row_to_keep,]
-	# attr(subset_classification_data, "annotation_dir") <- attr(classification_data, "annotation_dir")[row_to_keep,]
+	# attr(classification_data, "annotation_mod") <- attr(classification_data, "annotation_mod")[row_to_keep,]
+	# attr(classification_data, "annotation_dir") <- attr(classification_data, "annotation_dir")[row_to_keep,]
 	# if("annotation_strain" %in% names(attributes(classification_data))){
-	# 	attr(subset_classification_data, "annotation_strain") <- attr(classification_data, "annotation_strain")[row_to_keep,]
+	# 	attr(classification_data, "annotation_strain") <- attr(classification_data, "annotation_strain")[row_to_keep,]
 	# }
 
 	return(subset_classification_data)

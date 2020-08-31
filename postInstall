@@ -80,7 +80,7 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('iterators', version='1.0.10', upgrade='never'); \
     BiocManager::install('GenomicRanges', update=FALSE); \
     BiocManager::install('Rsamtools', update=FALSE); \
-    devtools::install_version('pillar', version='1.3.1', upgrade='never'); \
+    devtools::install_version('pillar', version='1.4.6', upgrade='never'); \
     devtools::install_version('bindrcpp', version='0.2', upgrade='never'); \
     devtools::install_version('dplyr', version='0.8.0.1', upgrade='never'); \
     BiocManager::install('GenomicAlignments', update=FALSE); \
@@ -119,7 +119,7 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('nnet', version='7.3-12', upgrade='never'); \
     devtools::install_version('randomForest', version='4.6-12', upgrade='never'); \
     devtools::install_version('klaR', version='0.6-12', upgrade='never'); \
-    devtools::install_version('caret', version='6.0-76', upgrade='never'); \
+    devtools::install_version('caret', version='6.0-85', upgrade='never'); \
     devtools::install_version('XML', version='3.98-1.7', upgrade='never'); \
     BiocManager::install('rhdf5', update=FALSE); \
     BiocManager::install('BSgenome', update=FALSE); \

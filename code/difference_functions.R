@@ -76,31 +76,19 @@ check.reference <- function(genome){
 	}
 }
 
-extract.basecall.version <- function(path_indexed_fasta){
-	# Read fasta file containing path to fast5 in header
-	read_name_nat <- names(readDNAStringSet(path_indexed_fasta))
-
-	# Extract only 1st path
-	path_first_fast5 <- head(str_split(read_name_nat, " ", simplify=TRUE)[,3], 1)
-	f5_content <- h5ls(path_first_fast5)
-
-	if(any(grepl("^/read_.*/Analyses/Basecall_1D_000/BaseCalled_template",f5_content$group, perl=TRUE)==TRUE)){
-		# This is a multi-read fast5 file
-		path_first_read <- f5_content$group[grepl("^/read_.*/Analyses/Basecall_1D_000/BaseCalled_template",f5_content$group, perl=TRUE)][1]
-		path_basecalling <- gsub("/BaseCalled_template","",path_first_read)
-	}else if(any(grepl("/Analyses/Basecall_1D_000/BaseCalled_template",f5_content$group, fixed=TRUE)==TRUE)){
-		# This is NOT a multi-read fast5 file
-		path_basecalling <- "/Analyses/Basecall_1D_000"
-	}
-
+extract.basecall.version <- function(path_first_fast5, path_basecalling){
 	f5_data <- h5readAttributes(path_first_fast5, path_basecalling) # Extract read data (fastq, move, and trace)
-
+	
 	if(length(f5_data)==0){
 		# This is likely a live base called read with MinKNOW
 		f5_data <- h5readAttributes(path_first_fast5, "/UniqueGlobalKey/tracking_id") # Extract read data (fastq, move, and trace)
-
-		basecaller <- "Guppy_live"
-		bc_version <- f5_data$guppy_version
+		if(is.null(f5_data$guppy_version)){
+			basecaller <- "Unknown"
+			bc_version <- "0.0.0"
+		}else{
+			basecaller <- "Guppy_live"
+			bc_version <- f5_data$guppy_version
+		}
 	}else{
 		# This is likely an "offline" base calling
 		if(grepl("Albacore",f5_data$name)){
@@ -115,23 +103,95 @@ extract.basecall.version <- function(path_indexed_fasta){
 		}
 	}
 
-	return(c(basecaller, bc_version))
+	return(data.frame(basecaller=basecaller, version=bc_version, stringsAsFactors=FALSE))
 }
 
-check.basecall.version <- function(path_input, sample_name_nat, sample_name_wga){
+find.basecall.versions <- function(path_indexed_fasta){
+	# Read fasta file containing path to fast5 in header
+	read_name_nat <- names(readDNAStringSet(path_indexed_fasta))
+
+	# Extract only 1st path
+	path_first_fast5 <- head(str_split(read_name_nat, " ", simplify=TRUE)[,3], 1)
+	f5_content <- h5ls(path_first_fast5)
+
+	if(any(grepl("^/read_.*",f5_content$group, perl=TRUE)==TRUE)){
+		# This is a multi-read fast5 file
+		path_first_read <- f5_content$group[grepl("^/read_.*",f5_content$group, perl=TRUE)][1]
+		
+		list_basecalling <- gsub("^/read_.*/Analyses/(.*)/BaseCalled_template","\\1",subset(f5_content, grepl(path_first_read, group) & name=="Fastq")$group)
+		available_versions <- foreach(basecall=list_basecalling, .combine=rbind) %do% {
+			path_basecalling <- paste0(path_first_read,"/Analyses/",basecall)
+
+			available_version <- extract.basecall.version(path_first_fast5, path_basecalling)
+			available_version$basecall_group <- basecall
+
+			return(available_version)
+		}
+	}else if(any(grepl("^/Analyses",f5_content$group, perl=TRUE)==TRUE)){
+		# This is NOT a multi-read fast5 file
+		list_basecalling <- gsub("^/Analyses/(.*)/BaseCalled_template","\\1",subset(f5_content, name=="Fastq")$group)
+		available_versions <- foreach(basecall=list_basecalling, .combine=rbind) %do% {
+			path_basecalling <- paste0("/Analyses/",basecall)
+
+			available_version <- extract.basecall.version(path_first_fast5, path_basecalling)
+			available_version$basecall_group <- basecall
+
+			return(available_version)
+		}
+	}
+	available_versions$simplified <- paste0(available_versions$basecaller, "_", available_versions$version)
+
+	return(available_versions)
+}
+
+check.basecall.version <- function(path_input, sample_name_nat, sample_name_wga, basecall_version){
 	# Get basecaller version from fast5 files
-	bc_version_wga <- extract.basecall.version(paste0(path_input,sample_name_wga,".fasta"))
-	bc_version_nat <- extract.basecall.version(paste0(path_input,sample_name_nat,".fasta"))
+	available_versions_wga <- find.basecall.versions(paste0(path_input,sample_name_wga,".fasta"))
+	available_versions_nat <- find.basecall.versions(paste0(path_input,sample_name_nat,".fasta"))
 
 	# Compare basecalling version
-	if(!identical(bc_version_nat,bc_version_wga)){
-		cat("Base calling was performed with two different versions.\n")
-		cat(paste0("Native reads: ",bc_version_nat[1],", ",bc_version_nat[2]))
-		cat(paste0("WGA reads: ",bc_version_wga[1],", ",bc_version_wga[2]))
+	common_basecalling <- intersect(available_versions_wga$simplified, available_versions_nat$simplified)
+	if(length(common_basecalling)==0){
+		cat("Base calling was performed with different versions.\n")
+		cat(paste0("Native reads:\n"))
+		print(available_versions_nat)
+		cat(paste0("WGA reads:\n"))
+		print(available_versions_wga)
 		cat("We highly recommend to use the same base caller version as signal properties can differ.\n")
-	}
+	}else if(length(common_basecalling)>1){
+		available_versions_wga <- subset(available_versions_wga, simplified %in% common_basecalling)
+		available_versions_nat <- subset(available_versions_nat, simplified %in% common_basecalling)
+		if(basecall_version=="default"){
+			default_basecalling_index <- match(common_basecalling[1],available_versions_nat$simplified)
+			default_basecalling_version <- c(available_versions_nat$basecaller[default_basecalling_index], available_versions_nat$version[default_basecalling_index])
+			cat("Multiple base calling versions are available.\n")
+			cat(paste0("The first matching version will be considered for tracking purpose (i.e. ",paste0(default_basecalling_version, collapse=":"),").\n"))
+			cat("The desired base calling version can be set with --basecall_version in \"nanodisco preprocess\" and \"nanodisco difference\".\n")
 
-	return(bc_version_nat)
+			return(c(available_versions_nat$basecaller[default_basecalling_index], available_versions_nat$version[default_basecalling_index]))
+		}else{
+			if(!grepl(":",basecall_version)){
+				cat("Parameter --basecall_version is not recognized. Please provide the basecaller name and version (e.g. Guppy:3.2.4).\n")
+				quit(save="no", status=4)
+			}
+
+			basecall_version <- strsplit(basecall_version,":")[[1]]
+			matching_version <- subset(available_versions_nat, basecaller==basecall_version[1] & grepl(paste0("^",basecall_version[2]), version))
+			
+			if(nrow(matching_version)==1){
+				return(c(matching_version$basecaller, matching_version$version))
+			}else{
+				cat("Parameter --basecall_version don't match available basecalling. Please provide the basecaller name and version (e.g. Guppy:3.2.4).\n")
+				cat("Available basecalling are displayed below.\n")
+				print(subset(available_versions_nat, select=c("basecaller","version")))
+				quit(save="no", status=4)
+			}
+		}
+	}else if(length(common_basecalling)==1){
+		default_basecalling_index <- match(common_basecalling[1],available_versions_nat$simplified)
+
+		return(c(available_versions_nat$basecaller[default_basecalling_index], available_versions_nat$version[default_basecalling_index]))
+	}
 }
 
 # tmp
