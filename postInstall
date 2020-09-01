@@ -124,6 +124,7 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     BiocManager::install('rhdf5', update=FALSE); \
     BiocManager::install('BSgenome', update=FALSE); \
     BiocManager::install('rtracklayer', update=FALSE); \
+    devtools::install_version('progress', version='1.2.2', upgrade='never'); \
 "
 
 # Install perl modules for meme

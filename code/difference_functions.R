@@ -457,7 +457,7 @@ prepare.index <- function(sample_name, path_input, path_output, genome, chunk_si
 						# Compute mapping start position to identify region with extreme coverage
 						summary_chunk_fast5_info <- chunk_fast5_info %>%
 							group_by(rname, pos, strand) %>%
-							summarize(nb_start=n()) %>%
+							summarize(nb_start=n(), .groups="drop_last") %>%
 							filter(rname==region_rname & strand==region_strand & pos >= region_start & pos <= region_end) %>%
 							arrange(desc(nb_start), pos)
 
@@ -962,7 +962,7 @@ scoring.position <- function(sub_corrected_data, inSilico, inSilico_model, min_c
 
 	sub_res <- sub_corrected_data %>%
 		group_by(contig, position, data_type, dir, strand, reference_kmer) %>%
-		summarise(means=list(norm_mean)) %>%
+		summarize(means=list(norm_mean), .groups="drop_last") %>%
 		group_by(contig, position, data_type, dir, strand) %>%
 		filter(length(unlist(means))>=min_coverage) %>% # default min 5 value by groups
 		group_by(contig, position, dir, strand)

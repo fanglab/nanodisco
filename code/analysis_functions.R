@@ -982,7 +982,7 @@ explore.winParams.motif.detection <- function(genome, final_stat_data, iupac_nc,
 			DNA_mod_stat_data$motif[DNA_mod_stat_data$col_motif==-1] <- "MultipleMotifs"
 			DNA_mod_stat_data <- DNA_mod_stat_data %>%
 				group_by(position_peak) %>%
-				summarise(N_motifs=length(motif), motifs=paste(motif, collapse=" "))
+				summarize(N_motifs=length(motif), motifs=paste(motif, collapse=" "), .groups="drop_last")
 
 			tmp_seq_isolated_motif <- as.data.frame(table(DNA_mod_stat_data$motifs[DNA_mod_stat_data$N_motifs==1]))
 			colnames(tmp_seq_isolated_motif) <- c("motif","freq")
@@ -1228,7 +1228,7 @@ refine.meme.motif <- function(sig_motif_detail, meme_results, iupac_nc){
 	uncertainties <- rel_frequencies %>%
 		mutate(tmp_uncertainty=rel_freq * log2(rel_freq)) %>%
 		group_by(pos) %>%
-		summarize(uncertainty=-sum(tmp_uncertainty, na.rm=TRUE))
+		summarize(uncertainty=-sum(tmp_uncertainty, na.rm=TRUE), .groups="drop_last")
 
 	information_contents <- uncertainties %>%
 		mutate(information_content=log2(DNA_base) - (uncertainty + correction))
@@ -1243,7 +1243,7 @@ refine.meme.motif <- function(sig_motif_detail, meme_results, iupac_nc){
 		filter(pos_h>min_pos_h) %>%
 		filter(base_h>min_base_h) %>%
 		group_by(pos) %>%
-		summarize(bases=paste0(base, collapse="")) %>%
+		summarize(bases=paste0(base, collapse=""), .groups="drop_last") %>%
 		mutate(code=as.character(iupac_nc$code[match(bases,iupac_nc$choice)]))
 
 	list_pos <- seq(min(tmp_motif$pos), max(tmp_motif$pos))
@@ -1252,7 +1252,7 @@ refine.meme.motif <- function(sig_motif_detail, meme_results, iupac_nc){
 	}
 	tmp_motif <- tmp_motif %>%
 		arrange(pos) %>%
-		summarize(motif=paste0(code, collapse=""))
+		summarize(motif=paste0(code, collapse=""), .groups="drop_last")
 
 	motif <- tmp_motif$motif
 
@@ -1550,9 +1550,9 @@ tag.mutated.motifs <- function(potential_motif, discovered_motifs, final_stat_da
 score.mutated.motifs <- function(tagged_final_stat_data){
 	motif_summary <- tagged_final_stat_data %>% # TODO try to improve summary function
 		group_by(mutation_type, pos_mutation, distance) %>%
-		summarise(score2=abs(mean(mean_diff, na.rm=TRUE))) %>%
+		summarize(score2=abs(mean(mean_diff, na.rm=TRUE)), .groups="drop_last") %>%
 		group_by(mutation_type, pos_mutation) %>%
-		summarise(score=sum(score2))
+		summarize(score=sum(score2), .groups="drop_last")
 	motif_summary$mutation_type <- ordered(motif_summary$mutation_type, levels=c("T","G","C","A")) # Same order as facet_grid
 
 	return(motif_summary)
@@ -1580,9 +1580,9 @@ refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, ge
 
 		# motif_summary <- tagged_final_stat_data %>% # TODO try to improve summary function
 		# 	group_by(mutation_type, pos_mutation, distance) %>%
-		# 	summarise(score2=abs(mean(mean_diff, na.rm=TRUE))) %>%
+		# 	summarize(score2=abs(mean(mean_diff, na.rm=TRUE)), .groups="drop_last") %>%
 		# 	group_by(mutation_type, pos_mutation) %>%
-		# 	summarise(score=sum(score2))
+		# 	summarize(score=sum(score2), .groups="drop_last")
 		# motif_summary$mutation_type <- ordered(motif_summary$mutation_type, levels=c("T","G","C","A")) # Same order as facet_grid
 		motif_summary <- score.mutated.motifs(tagged_final_stat_data)
 
@@ -1620,7 +1620,7 @@ auto.confirm.motif <- function(discovered_motifs, potential_motif, final_stat_da
 			filter(score>score_threshold) %>%
 			arrange(pos_mutation, desc(mutation_type)) %>%
 			group_by(pos_mutation) %>%
-			summarize(bases=paste0(mutation_type, collapse="")) %>%
+			summarize(bases=paste0(mutation_type, collapse=""), .groups="drop_last") %>%
 			group_by(pos_mutation) %>%
 			mutate(code=as.character(iupac_nc$code[grepl(paste0("^",bases,"$"), as.character(iupac_nc$choice))]))
 		if(nrow(res)>3){
@@ -1872,7 +1872,7 @@ count.motifs <- function(genome, motif_summary, iupac_nc, nbCPU){
 	motifs <- find.isolated.motifs(genome, motif_summary, iupac_nc, left_signal, right_signal, error_margin, nbCPU, FALSE)
 	motifs_count <- motifs %>%
 		group_by(motif) %>%
-		summarize(n=n())
+		summarize(n=n(), .groups="drop_last")
 
 	return(motifs_count)
 }
@@ -2077,7 +2077,7 @@ find.signature.center <- function(final_stat_data, motif_summary, genome, nbCPU,
 		print_message(paste0("    Score ",motif," modified position"))
 		motif_score <- tagged_final_stat_data %>% # TODO could maybe improve summary function
 			group_by(distance) %>%
-			summarize(score_position=abs(mean(mean_diff, na.rm=TRUE))) %>%
+			summarize(score_position=abs(mean(mean_diff, na.rm=TRUE)), .groups="drop_last") %>%
 			mutate(score_window=rollapplyr(score_position, 5, mean, partial=TRUE, fill=NA, align="center"))
 		signature_center <- motif_score %>%
 			filter(max(score_window)==score_window)
@@ -2149,7 +2149,7 @@ characterize.signature <- function(classification_data, base_name){
 
 	classification_data_summary_all <- classification_data %>%
 		group_by(distance) %>%
-		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE)) %>%
+		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE), .groups="drop_last") %>%
 		gather(stat, value, -c(distance))
 
 	gp_overall_summary <- ggplot(classification_data_summary_all) +
@@ -2182,7 +2182,7 @@ characterize.signature <- function(classification_data, base_name){
 
 	classification_data_summary_mod <- classification_data %>%
 		group_by(mod, distance) %>%
-		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE)) %>%
+		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE), .groups="drop_last") %>%
 		gather(stat, value, -c(mod, distance))
 
 	gp_ByModType_summary <- ggplot(classification_data_summary_mod) +
@@ -2201,7 +2201,7 @@ characterize.signature <- function(classification_data, base_name){
 
 	classification_data_summary_motif <- classification_data %>%
 		group_by(motif, distance) %>%
-		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE)) %>%
+		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE), .groups="drop_last") %>%
 		gather(stat, value, -c(motif, distance))
 
 	myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
@@ -2490,7 +2490,7 @@ draw.signature.heatmap <- function(motifs_signature, motif_summary, selected_pos
 	motif_summary <- motif_summary[motif_summary$explicit_motif %in% unique(heatmap_data$motif),]
 	# gp_heights <- heatmap_data %>%
 	# 	group_by(motif) %>%
-	# 	summarize(height=6 + (n()/5000))
+	# 	summarize(height=6 + (n()/5000), .groups="drop_last")
 	# motif_summary <- merge(motif_summary, gp_heights, by.x="explicit_motif", by.y="motif")
 
 	registerDoMC(nbCPU)
@@ -3407,7 +3407,7 @@ draw.classifier.performance.realistic <- function(performance_classifier, graph_
 
 	summary2_meta_classifier_details <- summary_meta_classifier_details %>%
 		group_by(excluded_motifs, classifier, TP) %>%
-		summarize(global_score=sum(score))
+		summarize(global_score=sum(score), .groups="drop_last")
 
 	gp <- ggplot(summary2_meta_classifier_details, aes(TP, classifier)) +
 		geom_tile(aes(fill=global_score), colour="white") +
@@ -3434,9 +3434,9 @@ draw.classifier.performance.realistic <- function(performance_classifier, graph_
 
 	final_stat <- summary_meta_classifier_details %>%
 		group_by(classifier, excluded_motifs) %>%
-		summarize(res=ifelse(any(tmp),"Match","Error")) %>%
+		summarize(res=ifelse(any(tmp),"Match","Error"), .groups="drop_last") %>%
 		group_by(classifier, res) %>%
-		summarize(res2=n()) %>%
+		summarize(res2=n(), .groups="drop_last") %>%
 		spread(res,res2) %>%
 		mutate(Accuracy=Match*100/(Match+ifelse(is.na(Error),0,Error)))
 	print(final_stat)
@@ -3496,7 +3496,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 		# By DNA modification type and offset
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(Ref_Mod, Ref_Pos, classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)) %>%
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE), .groups="drop_last") %>%
 			mutate(group=paste0(TP,".",Ref_Mod))
 		summary_meta_classifier_details$group <- as.factor(summary_meta_classifier_details$group) # Bad order
 		summary_meta_classifier_details$group <- factor(summary_meta_classifier_details$group, levels=mixedsort(levels(summary_meta_classifier_details$group)))
@@ -3516,7 +3516,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 		# Global
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)/nb_position)
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE)/nb_position, .groups="drop_last")
 
 		gp <- ggplot(summary_meta_classifier_details, aes(TP, classifier)) +
 			geom_tile(aes(fill=sum_Freq), colour="white") +
@@ -3547,7 +3547,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(Ref_Pos, classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)) %>%
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE), .groups="drop_last") %>%
 			mutate(group=paste0(TP,".",Ref_Pos))
 		summary_meta_classifier_details$group <- as.factor(summary_meta_classifier_details$group) # Bad order
 		summary_meta_classifier_details$group <- factor(summary_meta_classifier_details$group, levels=mixedsort(levels(summary_meta_classifier_details$group)))
@@ -3570,7 +3570,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(Ref_Mod, classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)/nb_position) %>%
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE)/nb_position, .groups="drop_last") %>%
 			mutate(group=paste0(TP,".",Ref_Mod))
 		summary_meta_classifier_details$group <- as.factor(summary_meta_classifier_details$group) # Good order
 
@@ -3594,7 +3594,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 		# By DNA modification type
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(classifier, excluded_motifs, TP, Reference) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)) %>%
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE), .groups="drop_last") %>%
 			mutate(group=paste0(TP,".",Reference))
 		summary_meta_classifier_details$group <- as.factor(summary_meta_classifier_details$group) # Good order
 
@@ -3613,7 +3613,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 		# Global
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE))
+			summarizse(sum_Freq=sum(Freq, na.rm=TRUE))
 
 		gp <- ggplot(summary_meta_classifier_details, aes(TP, classifier)) +
 			geom_tile(aes(fill=sum_Freq), colour="white") +
@@ -3679,9 +3679,9 @@ draw.classifier.results <- function(performance_classifier, motif_summary, base_
 			group_by(excluded_motifs, classifier, Ref_Pos) %>% # Ref_Pos==Mod_Type * Offset
 			mutate(Perc=(Freq*100)/sum(Freq)) %>%
 			group_by(excluded_motifs, classifier, Ref_Pos, Pred_Mod) %>%
-			summarize(tmp_score=sum(Perc)) %>% # Per offseted subset
+			summarize(tmp_score=sum(Perc), .groups="drop_last") %>% # Per offseted subset
 			group_by(excluded_motifs, classifier, Pred_Mod) %>%
-			summarize(score_mod=sum(tmp_score)/n()) %>%
+			summarize(score_mod=sum(tmp_score)/n(), .groups="drop_last") %>%
 			dplyr::rename(Mod_Type=Pred_Mod)
 
 		# Duplicate but needed for mod pos
@@ -3700,7 +3700,7 @@ draw.classifier.results <- function(performance_classifier, motif_summary, base_
 			mutate(Mod_Pos=Motif_Pos - relative_Pred_Pos) %>%
 			filter(Ref_Mod==Mod_Type) %>%
 			group_by(excluded_motifs, classifier, Mod_Pos) %>%
-			summarize(score_pos=sum(Perc))
+			summarize(score_pos=sum(Perc), .groups="drop_last")
 
 		return(list(type=as.data.frame(predicted_mod_type), pos=as.data.frame(predicted_mod_pos)))
 	}
@@ -4158,7 +4158,7 @@ new.summarize.feature.ROC <- function(detailed_parameters, stat_data, ROC_parame
 
 					return(data.frame(tmp_TN=tmp_TN, tmp_FP=tmp_FP))
 				} %>%
-					summarize(mean_TN=mean(tmp_TN), sd_TN=sd(tmp_TN), mean_FP=mean(tmp_FP), sd_FP=sd(tmp_FP))
+					summarize(mean_TN=mean(tmp_TN), sd_TN=sd(tmp_TN), mean_FP=mean(tmp_FP), sd_FP=sd(tmp_FP), .groups="drop_last")
 
 				TP3 <- TP
 				FN3 <- FN
@@ -4177,7 +4177,7 @@ new.summarize.feature.ROC <- function(detailed_parameters, stat_data, ROC_parame
 
 					return(data.frame(tmp_TP=tmp_TP, tmp_FN=tmp_FN))
 				} %>%
-					summarize(mean_TP=mean(tmp_TP), sd_TP=sd(tmp_TP), mean_FN=mean(tmp_FN), sd_FN=sd(tmp_FN))
+					summarize(mean_TP=mean(tmp_TP), sd_TP=sd(tmp_TP), mean_FN=mean(tmp_FN), sd_FN=sd(tmp_FN), .groups="drop_last")
 
 				TP3 <- floor(subsampling_res$mean_TP)
 				FN3 <- floor(subsampling_res$mean_FN)
