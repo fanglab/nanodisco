@@ -459,6 +459,29 @@ hide.ambiguous.matches <- function(gr_ambiguous_position, tmp_motif_matches, dir
 	return(gr_motif_matches)
 }
 
+find.isolated.motifs.sub <- function(motif_summary, idx_motif, direction, g_seq, gr_ambiguous_position){
+	original_motif <- motif_summary$motif[idx_motif]
+	mod_pos <- motif_summary$mod_pos[idx_motif]
+	len_motif <- nchar(original_motif)
+
+	if(direction=="rev"){
+		motif <- reverseComplement(DNAString(original_motif)) # Double checked
+		mod_pos <- (len_motif - mod_pos) + 1
+	}else{
+		motif <- original_motif
+	}
+
+	tmp_motif_matches <- vmatchPattern(motif, g_seq, fixed=FALSE)
+	tmp_motif_matches <- hide.ambiguous.matches(gr_ambiguous_position, tmp_motif_matches, direction)
+
+	motif_matches <- data.frame(contig_name=seqnames(tmp_motif_matches), contig_pos_motif=start(tmp_motif_matches) + (mod_pos - 1)) # Mark mod_pos
+	if(nrow(motif_matches)>0){
+		motif_matches$motif <- as.factor(as.character(original_motif)) # Add motif
+	}
+
+	return(motif_matches)
+}
+
 find.isolated.motifs <- function(genome, motif_summary, iupac_nc, left_signal, right_signal, error_margin, nbCPU, verbose=TRUE){
 	g_seq <- readDNAStringSet(genome)
 	names(g_seq) <- sapply(strsplit(names(g_seq), " "), `[`, 1) # Keep only first word like bwa index
@@ -474,31 +497,18 @@ find.isolated.motifs <- function(genome, motif_summary, iupac_nc, left_signal, r
 		# List all modified bases and keep duplicate
 		if(nbCPU>1){
 			registerDoMC(nbCPU)
-		}
-		motifs_matches <- foreach(idx_motif=seq(1,nrow(motif_summary)), .combine=rbind) %dopar% {
-			original_motif <- motif_summary$motif[idx_motif]
-			mod_pos <- motif_summary$mod_pos[idx_motif]
-			len_motif <- nchar(original_motif)
+			motifs_matches <- foreach(idx_motif=seq(1,nrow(motif_summary)), .combine=rbind) %dopar% {
+				motif_matches <- find.isolated.motifs.sub(motif_summary, idx_motif, direction, g_seq, gr_ambiguous_position)
 
-			if(direction=="rev"){
-				motif <- reverseComplement(DNAString(original_motif)) # Double checked
-				mod_pos <- (len_motif - mod_pos) + 1
-			}else{
-				motif <- original_motif
+				return(motif_matches)
 			}
-
-			tmp_motif_matches <- vmatchPattern(motif, g_seq, fixed=FALSE)
-			tmp_motif_matches <- hide.ambiguous.matches(gr_ambiguous_position, tmp_motif_matches, direction)
-
-			motif_matches <- data.frame(contig_name=seqnames(tmp_motif_matches), contig_pos_motif=start(tmp_motif_matches) + (mod_pos - 1)) # Mark mod_pos
-			if(nrow(motif_matches)>0){
-				motif_matches$motif <- as.factor(as.character(original_motif)) # Add motif
-			}
-
-			return(motif_matches)
-		}
-		if(nbCPU>1){
 			registerDoSEQ()
+		}else{
+			motifs_matches <- foreach(idx_motif=seq(1,nrow(motif_summary)), .combine=rbind) %do% {
+				motif_matches <- find.isolated.motifs.sub(motif_summary, idx_motif, direction, g_seq, gr_ambiguous_position)
+
+				return(motif_matches)
+			}
 		}
 
 		left_free <- left_signal + right_signal + error_margin  # same as right_free TODO switch strand if unbalanced value
@@ -1558,13 +1568,19 @@ score.mutated.motifs <- function(tagged_final_stat_data){
 	return(motif_summary)
 }
 
-refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, seq_params, iupac_nc, path_output, graph_subtitle, automated=FALSE){
+refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, seq_params, iupac_nc, path_output, graph_subtitle, automated=TRUE){
 	print_message(paste0("Generating refining plot for ",potential_motif))
 	len_motif <- nchar(potential_motif)
 
 	tagged_final_stat_data <- tag.mutated.motifs(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, iupac_nc)
 
 	if(!is.null(tagged_final_stat_data)){
+		if(automated){
+			compound_name <- paste0(potential_motif)
+		}else{
+			compound_name <- paste0(potential_motif,"_",graph_subtitle)
+		}
+
 		gp <- ggplot(tagged_final_stat_data) +
 			geom_jitter(aes(x=as.factor(distance), y=mean_diff), pch=46, height=0) +
 			geom_violin(aes(x=as.factor(distance), y=mean_diff), alpha=0.5) +
@@ -1574,7 +1590,7 @@ refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, ge
 			labs(title=paste0("Refine ",potential_motif," motif"), subtitle=paste0(graph_subtitle)) +
 			labs(x="Relative position from motif (-6:motif:1)", y="Mean pA differences") +
 			theme(text=element_text(size=20)) # strip.text.x=element_text(size=8)
-		pdf(paste0(path_output,"/","Refine_Motifs_",potential_motif,".pdf"), width=4*len_motif, height=4*4)
+		pdf(paste0(path_output,"/","Refine_Motifs_",compound_name,".pdf"), width=4*len_motif, height=4*4)
 		print(gp)
 		dev.off()
 
@@ -1593,7 +1609,7 @@ refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, ge
 			scale_fill_gradientn(colours=myPalette(100)) +
 			labs(title=paste0("Refine scores for ",potential_motif," motif"), subtitle=paste0(graph_subtitle)) +
 			labs(x="Mutated Position", y="Mutated Base", fill="Score")
-		pdf(paste0(path_output,"/","Refine_Motifs_scores_",potential_motif,".pdf"), width=1*len_motif, height=1*4)
+		pdf(paste0(path_output,"/","Refine_Motifs_scores_",compound_name,".pdf"), width=1*len_motif, height=1*4)
 		print(gp)
 		dev.off()
 
