@@ -36,7 +36,6 @@ For more information, please consult https://github.com/fanglab/nanodisco
     "libopenmpi-dev" \
     "openssh-client" \
     "openssh-server" \
-    "fonts-noto" \
     && rm -rf /var/lib/apt/lists/*
 
     # Include nanodisco toolbox
