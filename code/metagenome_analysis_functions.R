@@ -1853,8 +1853,12 @@ generate.color.palette <- function(annotation){
 add.contigs.annotation <- function(tsne_data, annotation){
 	tsne_data$id <- NULL
 	tsne_data$db_clust <- NULL
+	annotation$contig <- str_split(annotation$contig," ",simplify=TRUE)[,1]
+
 	tsne_data <- merge(tsne_data, annotation, by=c("contig"), all.x=TRUE)
 	if("Not binned" %in% levels(tsne_data$id)){
+		tsne_data$id <- factor(tsne_data$id, levels=levels(tsne_data$id))
+	}else if("No annotation" %in% levels(tsne_data$id)){
 		tsne_data$id <- factor(tsne_data$id, levels=levels(tsne_data$id))
 	}else if("Unknown" %in% levels(tsne_data$id)){
 		tsne_data$id <- factor(tsne_data$id, levels=levels(tsne_data$id))
@@ -1862,7 +1866,6 @@ add.contigs.annotation <- function(tsne_data, annotation){
 		tsne_data$id <- factor(tsne_data$id, levels=c(levels(tsne_data$id), "Not binned"))
 		tsne_data$id[is.na(tsne_data$id)] <- as.factor("Not binned")
 	}
-
 
 	return(tsne_data)
 }
