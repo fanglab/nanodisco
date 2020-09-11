@@ -1000,6 +1000,14 @@ score.metagenome.motifs <- function(genome_id, path_metagenome, data_type, list_
 		motif_summary <- data.frame(motif=current_motif, mod_pos=arbitrary_mod_pos, stringsAsFactors=FALSE)
 		motifs <- find.isolated.motifs(path_metagenome, motif_summary, iupac_nc, left_signal, right_signal, error_margin, 1, FALSE) # Long
 
+		if(nrow(motifs)==0){
+			# No matching motif in all contigs
+			empty_scored_motif <- data.frame(contig="None", motif=current_motif, distance_motif=0, signal_ratio=NA, dist_score=0.0, nb_occurrence=0)
+			empty_scored_motif$nb_occurrence <- as.integer(empty_scored_motif$nb_occurrence)
+
+			return(empty_scored_motif)
+		}
+
 		expected_motifs_signal <- motifs %>%
 			mutate(strand=as.factor(ifelse(dir=="fwd","+","-"))) %>%
 			mutate(left_side=contig_pos_motif + expected_signal_left - signal_margin) %>%
@@ -1100,7 +1108,13 @@ score.metagenome.motifs <- function(genome_id, path_metagenome, data_type, list_
 
 	nb_processed_motifs <- unique(as.character(scored_motifs$motif))
 	if(length(nb_processed_motifs)!=length(list_motifs_to_process)){
-		paste0("Possible error during scoring.") # Silent error appended when out of memory
+		print_message("Possible error during scoring.") # Silent error appended when out of memory
+	}
+
+	if("None" %in% levels(scored_motifs$contig)){
+		scored_motifs <- subset(scored_motifs, contig!="None") # Remove potential entry from missing motifs (no occurrence across all contigs)
+		scored_motifs$contig <- droplevels(scored_motifs$contig)
+		scored_motifs$motif <- droplevels(scored_motifs$motif)
 	}
 
 	return(scored_motifs)
