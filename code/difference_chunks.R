@@ -23,7 +23,8 @@ option_list <- list(
 	make_option(c("-e", "--min_coverage"), type="integer", default=5, help="Minimum number of events per position", metavar="<integer>"),
 	make_option(c("-j", "--map_type"), type="character", default="noAddSupp", help="Type of filtering for mapping", metavar="<type>"),
 	make_option(c("-k", "--min_read_length"), type="integer", default=0, help="Minimum mapped read length (0 default)", metavar="<integer>"),
-	make_option(c("-t", "--path_t_model"), type="character", default=NULL, help="Path for nanopolish r9.4_450bps.nucleotide.6mer.template.model", metavar="<path>")
+	make_option(c("-t", "--path_t_model"), type="character", default=NULL, help="Path for nanopolish r9.4_450bps.nucleotide.6mer.template.model", metavar="<path>"),
+	make_option(c("--basecall_version"), type="character", default="default", help="Basecalling version (when multiple ones available)", metavar="<basecaller:version>")
 )
 
 default_usage <- c("nanodisco difference -nj <nb_jobs> -nc <nb_chunks> -p <nb_threads> -i <path_input> -o <path_output> -w <name_WGA> -n <name_native> -r <path_genome> [-f <first_chunk> -l <last_chunk> + advanced parameters]")
@@ -78,6 +79,8 @@ if(opt$exec_type=="batch"){
 	min_coverage <- opt$min_coverage # default 5
 	map_type <- opt$map_type # default 5
 	min_read_length <- opt$min_read_length # default 5
+
+	basecall_version <- opt$basecall_version # default is default
 }else if(opt$exec_type=="seq"){ # If launched using source; use default values
 	
 	# Not used
@@ -90,7 +93,7 @@ setwd(path_input)
 
 check.reference(genome)
 
-bc_version <- check.basecall.version(path_input, sample_name_nat, sample_name_wga)
+bc_version <- check.basecall.version(path_input, sample_name_nat, sample_name_wga, basecall_version)
 
 Sys.time()
 index_wga <- prepare.index(sample_name_wga, path_input, path_output, genome, chunk_size, list_chunks) # TODO try to save in hdf5 files

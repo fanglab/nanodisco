@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nanodisco_version="v1.0.0"
+nanodisco_version="v1.0.1_dev"
 
 ###
 # Wrapper for nanodisco subtasks
@@ -10,6 +10,7 @@ nanodisco_version="v1.0.0"
 # difference: Compute nanopore signal difference between a native and a WGA dataset
 # merge: Combine nanopore signal difference for all processed chunks in directory
 # motif: De novo discovery of methylation motifs
+# refine: Generate refine plot for putative methylation motifs
 # characterize: Predict the methylation type and fine-map the modification within de novo discovered methylation motifs file
 # coverage: Compute average coverage for each contig in a reference genome (uses bedtools genomecov)
 # profile: Compute the methylation profile matrix for a metagenome sample (methylation feature at common or expected methylation motifs)
@@ -18,7 +19,7 @@ nanodisco_version="v1.0.0"
 # binning: Perform methylation binning, cluster metagenomic contigs according to methylation feature similarities using t-SNE
 # plot_binning: Plot results of methylation binning
 # help: Print help
-# help: Print version
+# version: Print version
 
 ## Describe subtasks
 preprocess_def="Extract reads (.fasta) from base called fast5 files and map reads on reference (meta)genome."
@@ -26,6 +27,7 @@ chunk_info_def="Display chunks information regarding supplied reference (meta)ge
 difference_def="Compute nanopore signal difference between a native and a WGA dataset."
 merge_def="Combine nanopore signal difference for all processed chunks in directory."
 motif_def="De novo discovery of methylation motifs from current differences file."
+refine_def="Generate refine plot for putative methylation motifs."
 characterize_def="Predict the methylation type and fine-map the modification within de novo discovered methylation motifs file."
 coverage_def="Compute average coverage for each contig in a reference genome (uses bedtools genomecov)."
 profile_def="Compute the methylation profile matrix for a metagenome sample (methylation feature at common or expected methylation motifs)."
@@ -60,6 +62,10 @@ case $subtask in
     ;;
   motif)
     cmd="/home/nanodisco/code/motif.R"
+    shift # pass subtask
+    ;;
+  refine)
+    cmd="/home/nanodisco/code/refine.R"
     shift # pass subtask
     ;;
   characterize)
@@ -98,6 +104,7 @@ case $subtask in
     echo "      - difference: $difference_def" >&2
     echo "      - merge: $merge_def" >&2
     echo "      - motif: $motif_def" >&2
+    echo "      - refine: $refine_def" >&2
     echo "      - characterize: $characterize_def" >&2
     echo "      - coverage: $coverage_def" >&2
     echo "      - profile: $profile_def" >&2
@@ -129,8 +136,4 @@ else
   # Execute subtask
   $cmd "$@"
 fi
-
-
-
-
 

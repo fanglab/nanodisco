@@ -445,7 +445,7 @@ process.coverage <- function(input_coverage){
 
 	contig_annotation <- data_cov %>%
 		group_by(chr) %>%
-		summarize(contig_length=unique(chrom_size), avg_cov=sum(depth*nb_pos)/contig_length)
+		summarize(contig_length=unique(chrom_size), avg_cov=sum(depth*nb_pos)/contig_length, .groups="drop_last")
 
 	return(contig_annotation)
 }
@@ -525,7 +525,7 @@ compute.effective.coverage <- function(methylation_signal, contigs_info){
 	effective_coverage <- methylation_signal %>%
 		filter(!is.na(mean_diff)) %>% # Remove position without values
 		group_by(contig) %>%
-		summarize(sum_N_wga=sum(N_wga, na.rm=TRUE), sum_N_nat=sum(N_nat, na.rm=TRUE)) %>%
+		summarize(sum_N_wga=sum(N_wga, na.rm=TRUE), sum_N_nat=sum(N_nat, na.rm=TRUE), .groups="drop_last") %>%
 		mutate(contig=as.character(contig)) %>%
 		inner_join(contigs_info, by="contig") %>%
 		mutate(avg_cov_wga=sum_N_wga/length, avg_cov_nat=sum_N_nat/length)
@@ -652,7 +652,7 @@ select.random.motifs <- function(list_motifs, nb_motifs, per_length=FALSE, resam
 		df_resample$len_motif <- nchar(df_resample$motif)
 		df_resample <- df_resample %>%
 			group_by(len_motif) %>%
-			summarize(n=n())
+			summarize(n=n(), .groups="drop_last")
 
 		list_random_motifs <- foreach(idx=seq(1,nrow(df_resample)), .combine=c) %do% {
 			subset_random_motifs <- sample_n(subset(df_motifs, len_motif==df_resample$len_motif[idx]), size=df_resample$n[idx], replace=FALSE)$motif
@@ -696,7 +696,7 @@ estimate.motifs.overlaps <- function(list_motifs_of_interest, reference_decompos
 
 		tmp_results <- reference_decomposed_motifs %>%
 			group_by(motifs, n, matched) %>%
-			summarize(n_matches=n()) %>%
+			summarize(n_matches=n(), .groups="drop_last") %>%
 			spread(matched, n_matches, fill=0)
 		
 		# Add potential missing columns
@@ -856,7 +856,7 @@ count.metagenome.motifs <- function(path_metagenome, genome_id, list_motifs_to_p
 
 		number_motif <- motifs %>%
 			group_by(contig_name, motif) %>%
-			summarize(n=n())
+			summarize(n=n(), .groups="drop_last")
 
 		return(number_motif)
 	}
@@ -1000,6 +1000,14 @@ score.metagenome.motifs <- function(genome_id, path_metagenome, data_type, list_
 		motif_summary <- data.frame(motif=current_motif, mod_pos=arbitrary_mod_pos, stringsAsFactors=FALSE)
 		motifs <- find.isolated.motifs(path_metagenome, motif_summary, iupac_nc, left_signal, right_signal, error_margin, 1, FALSE) # Long
 
+		if(nrow(motifs)==0){
+			# No matching motif in all contigs
+			empty_scored_motif <- data.frame(contig="None", motif=current_motif, distance_motif=0, signal_ratio=NA, dist_score=0.0, nb_occurrence=0)
+			empty_scored_motif$nb_occurrence <- as.integer(empty_scored_motif$nb_occurrence)
+
+			return(empty_scored_motif)
+		}
+
 		expected_motifs_signal <- motifs %>%
 			mutate(strand=as.factor(ifelse(dir=="fwd","+","-"))) %>%
 			mutate(left_side=contig_pos_motif + expected_signal_left - signal_margin) %>%
@@ -1040,7 +1048,7 @@ score.metagenome.motifs <- function(genome_id, path_metagenome, data_type, list_
 		}
 		scored_motif <- scored_motif %>%
 			group_by(contig, motif, distance_motif, signal_stat) %>%
-			summarize(means_diff=list(mean_diff))
+			summarize(means_diff=list(mean_diff), .groups="drop_last")
 
 		# Compute signal ratio
 		if(length(gr_methylated_motifs_signal)>1){ # If NA then = 1
@@ -1088,7 +1096,7 @@ score.metagenome.motifs <- function(genome_id, path_metagenome, data_type, list_
 				arrange(contig, motif, desc(dist_score)) %>%
 				group_by(contig, motif) %>%
 				filter(row_number()<=6) %>% # Remove potential ties; Rare
-				summarize(score=sum(dist_score), average_nb_occurrence=mean(nb_occurrence), average_signal_ratio=mean(signal_ratio)) # average_signal_ratio could recompute
+				summarize(score=sum(dist_score), average_nb_occurrence=mean(nb_occurrence), average_signal_ratio=mean(signal_ratio), .groups="drop_last") # average_signal_ratio could recompute
 		}
 
 		progress.tracker(pb, current_motif, list_motifs_to_process, nbCPU)
@@ -1100,7 +1108,13 @@ score.metagenome.motifs <- function(genome_id, path_metagenome, data_type, list_
 
 	nb_processed_motifs <- unique(as.character(scored_motifs$motif))
 	if(length(nb_processed_motifs)!=length(list_motifs_to_process)){
-		paste0("Possible error during scoring.") # Silent error appended when out of memory
+		print_message("Possible error during scoring.") # Silent error appended when out of memory
+	}
+
+	if("None" %in% levels(scored_motifs$contig)){
+		scored_motifs <- subset(scored_motifs, contig!="None") # Remove potential entry from missing motifs (no occurrence across all contigs)
+		scored_motifs$contig <- droplevels(scored_motifs$contig)
+		scored_motifs$motif <- droplevels(scored_motifs$motif)
 	}
 
 	return(scored_motifs)
@@ -1708,7 +1722,7 @@ listing.binned.contigs <- function(tsne_data_dbclust, background_bins){
 	list_contigs_tmp <- subset(tsne_data_dbclust, !db_clust %in% background_bins) %>%
 		dplyr::select(contig,db_clust) %>%
 		group_by(db_clust) %>%
-		summarize(contigs=list(as.character(contig))) %>%
+		summarize(contigs=list(as.character(contig)), .groups="drop_last") %>%
 		as.list()
 	list_contigs <- list_contigs_tmp$contigs
 	names(list_contigs) <- list_contigs_tmp$db_clust
@@ -1839,8 +1853,12 @@ generate.color.palette <- function(annotation){
 add.contigs.annotation <- function(tsne_data, annotation){
 	tsne_data$id <- NULL
 	tsne_data$db_clust <- NULL
+	annotation$contig <- str_split(annotation$contig," ",simplify=TRUE)[,1]
+
 	tsne_data <- merge(tsne_data, annotation, by=c("contig"), all.x=TRUE)
 	if("Not binned" %in% levels(tsne_data$id)){
+		tsne_data$id <- factor(tsne_data$id, levels=levels(tsne_data$id))
+	}else if("No annotation" %in% levels(tsne_data$id)){
 		tsne_data$id <- factor(tsne_data$id, levels=levels(tsne_data$id))
 	}else if("Unknown" %in% levels(tsne_data$id)){
 		tsne_data$id <- factor(tsne_data$id, levels=levels(tsne_data$id))
@@ -1848,7 +1866,6 @@ add.contigs.annotation <- function(tsne_data, annotation){
 		tsne_data$id <- factor(tsne_data$id, levels=c(levels(tsne_data$id), "Not binned"))
 		tsne_data$id[is.na(tsne_data$id)] <- as.factor("Not binned")
 	}
-
 
 	return(tsne_data)
 }
@@ -2110,7 +2127,7 @@ score.contigs.alignments <- function(path_metagenome, bamFile, genome_bin_id, ba
 
 	summary_alignment_information <- alignment_information %>%
 		group_by(bin, contig) %>%
-		summarize(score=median(AS/qwidth))
+		summarize(score=median(AS/qwidth), .groups="drop_last")
 
 	if(nrow(summary_alignment_information)<20){
 		gp <- ggplot(alignment_information) +
@@ -2137,7 +2154,7 @@ score.contigs.alignments <- function(path_metagenome, bamFile, genome_bin_id, ba
 filtering.overlapping.motifs <- function(selected_dist_real_features, list_lengths, scope, nbCPU){
 	summary_selected_dist_real_features <- selected_dist_real_features %>%
 		group_by(motif) %>%
-		summarize(n=n()) %>%
+		summarize(n=n(), .groups="drop_last") %>%
 		mutate(motif=as.character(motif), len=nchar(motif))
 
 	if(scope=="all"){
@@ -2243,7 +2260,7 @@ summarize.motifs.filtering <- function(list_motifs_to_process, selected_dist_rea
 	df_associated_motifs %>%
 		group_by(expected_motif) %>%
 		mutate(score=ifelse(is.na(matching_motifs), 0, 1)) %>%
-		summarize(n=sum(score)) %>%
+		summarize(n=sum(score), .groups="drop_last") %>%
 		arrange(n) %>%
 		print(n=20)
 
@@ -2253,7 +2270,7 @@ summarize.motifs.filtering <- function(list_motifs_to_process, selected_dist_rea
 	summary_explained_motifs <- explained_motifs %>% 
 		mutate(len=nchar(motif)) %>%
 		arrange(len) %>% group_by(len) %>%
-		summarize(n=n(), perc=n/nrow(explained_motifs))
+		summarize(n=n(), perc=n/nrow(explained_motifs), .groups="drop_last")
 	print("Observed motifs explained by length:")
 	summary_explained_motifs  %>% print()
 
@@ -2263,7 +2280,7 @@ summarize.motifs.filtering <- function(list_motifs_to_process, selected_dist_rea
 		mutate(len=nchar(motif)) %>%
 		arrange(len) %>%
 		group_by(len) %>%
-		summarize(n=n(), perc=n/nrow(unexplained_motifs))
+		summarize(n=n(), perc=n/nrow(unexplained_motifs), .groups="drop_last")
 	print("Observed motifs unexplained by length:")
 	summary_unexplained_motifs %>% print()
 
@@ -2271,7 +2288,7 @@ summarize.motifs.filtering <- function(list_motifs_to_process, selected_dist_rea
 	explained_features_per_contig <- selected_dist_real_features %>%
 		filter(motif %in% list_motifs_to_process[list_motifs_to_process %in% df_associated_motifs$matching_motifs]) %>%
 		group_by(contigs_origin) %>%
-		summarize(n=n()) %>%
+		summarize(n=n(), .groups="drop_last") %>%
 		mutate(perc=n/sum(n)) %>%
 		arrange(desc(n))
 	print("Explained features per contig:")
@@ -2279,7 +2296,7 @@ summarize.motifs.filtering <- function(list_motifs_to_process, selected_dist_rea
 	unexplained_features_per_contig <- selected_dist_real_features %>%
 		filter(motif %in% list_motifs_to_process[!list_motifs_to_process %in% df_associated_motifs$matching_motifs]) %>%
 		group_by(contigs_origin) %>%
-		summarize(n=n()) %>%
+		summarize(n=n(), .groups="drop_last") %>%
 		mutate(perc=n/sum(n)) %>%
 		arrange(desc(n))
 	print("Unexplained features per contig:")
@@ -2288,9 +2305,9 @@ summarize.motifs.filtering <- function(list_motifs_to_process, selected_dist_rea
 	explained_motifs_per_contig <- selected_dist_real_features %>%
 		filter(motif %in% list_motifs_to_process[list_motifs_to_process %in% df_associated_motifs$matching_motifs]) %>%
 		group_by(motif, contigs_origin) %>%
-		summarize(n_features=n()) %>%
+		summarize(n_features=n(), .groups="drop_last") %>%
 		group_by(contigs_origin) %>%
-		summarize(n=n()) %>%
+		summarize(n=n(), .groups="drop_last") %>%
 		mutate(perc=n/sum(n)) %>%
 		arrange(desc(n))
 	print("Explained motifs per contig:")
@@ -2298,9 +2315,9 @@ summarize.motifs.filtering <- function(list_motifs_to_process, selected_dist_rea
 	unexplained_motifs_per_contig <- selected_dist_real_features %>%
 		filter(motif %in% list_motifs_to_process[!list_motifs_to_process %in% df_associated_motifs$matching_motifs]) %>%
 		group_by(motif, contigs_origin) %>%
-		summarize(n_features=n()) %>%
+		summarize(n_features=n(), .groups="drop_last") %>%
 		group_by(contigs_origin) %>%
-		summarize(n=n()) %>%
+		summarize(n=n(), .groups="drop_last") %>%
 		mutate(perc=n/sum(n)) %>%
 		arrange(desc(n))
 	print("Unexplained motifs per contig:")
@@ -2409,7 +2426,7 @@ show.global.scores.distribution <- function(scored_dist_real_motifs, motifs_filt
 filtering.sig.motifs <- function(selected_dist_real_features, type, values){
 	summary_selected_dist_real_features <- selected_dist_real_features %>%
 		group_by(motif) %>%
-		summarize(n=n()) %>%
+		summarize(n=n(), .groups="drop_last") %>%
 		mutate(motif=as.character(motif), len=nchar(motif))
 	if(type=="only"){
 		summary_selected_dist_real_features <- summary_selected_dist_real_features %>%
@@ -2426,7 +2443,7 @@ filtering.sig.motifs <- function(selected_dist_real_features, type, values){
 filtering.sig.bipartite.motifs <- function(selected_dist_real_features, type, values){
 	summary_selected_dist_real_features <- selected_dist_real_features %>%
 		group_by(motif) %>%
-		summarize(n=n()) %>%
+		summarize(n=n(), .groups="drop_last") %>%
 		mutate(motif=as.character(motif), len=nchar(motif))
 	selected_dist_real_features_bipartite <- summary_selected_dist_real_features %>%
 		filter(len>8)
@@ -2447,7 +2464,7 @@ filtering.sig.bipartite.motifs <- function(selected_dist_real_features, type, va
 filtering.length.motifs <- function(selected_dist_real_features, type, values){
 	summary_selected_dist_real_features <- selected_dist_real_features %>%
 		group_by(motif) %>%
-		summarize(n=n()) %>%
+		summarize(n=n(), .groups="drop_last") %>%
 		mutate(motif=as.character(motif), len=nchar(motif))
 	if(type=="max"){
 		selected_dist_real_features_lenght <- summary_selected_dist_real_features %>%
@@ -2503,7 +2520,7 @@ check.motifs.selection <- function(selected_dist_real_features, list_expected_mo
 	recovery <- recovery %>%
 		mutate(is_found=ifelse(n_matches>0, "Yes", "No")) %>%
 		group_by(is_found) %>%
-		summarize(score=n()) %>%
+		summarize(score=n(), .groups="drop_last") %>%
 		spread(is_found, score) %>%
 		mutate(pseudo_comp=(Yes/(Yes+No))*100)
 	print(paste0(round(recovery$pseudo_comp,2),"% of expected motifs covered by selected motifs (",recovery$Yes,"/",recovery$Yes+recovery$No,")."))
@@ -2511,15 +2528,15 @@ check.motifs.selection <- function(selected_dist_real_features, list_expected_mo
 	sum_feat_accuracy <- accuracy %>%
 		mutate(is_explained=ifelse(n_matches>0, "Yes", "No")) %>%
 		group_by(is_explained) %>%
-		summarize(score=n()) %>%
+		summarize(score=n(), .groups="drop_last") %>%
 		spread(is_explained, score) %>%
 		mutate(pseudo_acc=(Yes/(Yes+No))*100)
 	sum_mot_accuracy <- accuracy %>%
 		group_by(motif, n_matches) %>%
-		summarize(n=n()) %>%
+		summarize(n=n(), .groups="drop_last") %>%
 		mutate(is_explained=ifelse(n_matches>0, "Yes", "No")) %>%
 		group_by(is_explained) %>%
-		summarize(score=n()) %>%
+		summarize(score=n(), .groups="drop_last") %>%
 		spread(is_explained, score) %>%
 		mutate(pseudo_acc=(Yes/(Yes+No))*100)
 	print(paste0(round(sum_feat_accuracy$pseudo_acc,2),"% of selected features were expected (",sum_feat_accuracy$Yes,"/",sum_feat_accuracy$Yes+sum_feat_accuracy$No,")."))
@@ -2637,7 +2654,7 @@ score.contig.motif <- function(motif_to_score, discovered_motifs, contig_name, m
 			arrange(contig, pos_motif, dir, motif, desc(abs(mean_diff))) %>%
 			group_by(contig, pos_motif, dir, motif) %>%
 			filter(row_number()<=6) %>% # Remove potential/rare ties
-			summarize(score=mean(abs(mean_diff), na.rm=TRUE), cov_wga=unique(cov_wga), cov_nat=unique(cov_nat))
+			summarize(score=mean(abs(mean_diff), na.rm=TRUE), cov_wga=unique(cov_wga), cov_nat=unique(cov_nat), .groups="drop_last")
 	}
 
 	contig_ranges <- range(scored_motif$pos_motif)

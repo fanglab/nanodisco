@@ -16,7 +16,7 @@ option_list <- list(
 	make_option(c("-t", "--threshold"), type="double", default=NA, help="Smoothed peaks p-values threshold for sequence selection (if double: peaks > <threshold> or if NA: top <nb_peaks> only, default is NA)", metavar="<double>"),
 	make_option(c("-c", "--list_contig"), type="character", default=NULL, help="Comma separated list of contigs (e.g. contig_1,contig_3)", metavar="<contig_1,contig_3,...>"),
 	make_option(c("--contigs_file"), type="character", default=NULL, help="Path to file with list of contigs (one per line)", metavar="<path>"),
-	make_option(c("-a","--auto"), type="character", default=FALSE, action="store_true", help="Disable manual motif discovery procedure (not recommended; default is FALSE)"),
+	make_option(c("-a","--auto"), default=FALSE, action="store_true", help="Disable manual motif discovery procedure (not recommended; default is FALSE)"),
 	make_option(c("--score_threshold"), type="double", default=2, help="Threshold used in motif refinement (default is 2)", metavar="<double>"),
 	make_option(c("--nb_peaks"), type="integer", default=2000, help="Number of sequence with p-value peaks to keep for each round (default is 2000)", metavar="<integer>"),
 	make_option(c("--stat_type"), type="character", default="u_test_pval", help="Select which type of p-value sources used (default is u_test_pval)", metavar="<character>"),

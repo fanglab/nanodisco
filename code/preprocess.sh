@@ -51,7 +51,7 @@ while [[ $# -gt 0 ]]; do
         exit 5
       fi
       ;;
-    -f|path_fast5)
+    -f|--path_fast5)
       if [[ -d $2 ]]; then
         path_fast5="$2"
         shift # pass argument
@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
         exit 5
       fi
       ;;
-    -s|name_sample)
+    -s|--name_sample)
       name_sample="$2"
       shift # pass argument
       shift # pass value
@@ -87,6 +87,11 @@ while [[ $# -gt 0 ]]; do
         echo -e "\t"$path_reference_genome_def >&2
         exit 5
       fi
+      ;;
+    --basecall_version)
+      basecall_version="$2"
+      shift # pass argument
+      shift # pass value
       ;;
     -h|--help) # Print help
       echo "Usage: nanodisco preprocess -p <nb_threads> -f <path_fast5> -s <sample_name> -o <path_output> -r <path_reference_genome>" >&2
@@ -118,6 +123,10 @@ fi
 if [ -z "$path_reference_genome" ]; then
   flag_mp=1 && echo -e "-r/--path_reference_genome is missing. \n\t$path_reference_genome_def" >&2
 fi
+if [ -z "$basecall_version" ]; then
+  basecall_version="default"
+fi
+
 
 # Exit if missing parameters
 if [ $flag_mp -eq 1 ]; then
@@ -130,7 +139,7 @@ mkdir -p $path_output
 path_output_sample="$path_output/$name_sample"
 
 ## Extract fasta files from fast5, necessary as nanopolish create internal read<->fast5 index
-/home/nanodisco/code/extract.R -i $path_fast5 -o $path_output -b $name_sample -p $nb_threads -s fa
+/home/nanodisco/code/extract.R -i $path_fast5 -o $path_output -b $name_sample -p $nb_threads -s fa --basecall_version $basecall_version
 
 # Check if some reads have been extracted
 if [[ -f $path_output_sample".fasta" ]]; then

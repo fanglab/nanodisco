@@ -255,13 +255,13 @@ check.model.version <- function(diff_data){
 					}
 				}else{ # Version not supported
 					cat(paste0("Models for ",basecaller," version ",bc_version," is not available.\n"))
-					cat("Motif characterization will still proceed with the default model but obtained results might not optimal.\n")
+					cat("Motif characterization will still proceed with the default model but obtained results might not be optimal.\n")
 					cat("Additional information can be found in our GitHub repository.\n")
 					bc_version <- "v2.3.4"
 				}
 			}else if(basecaller=="Guppy"){ # Base caller is recognized but not supported
 				cat(paste0("Models for ",basecaller," version ",bc_version," is not yet available but we are working on it.\n"))
-				cat("Motif characterization will still proceed with the default model but obtained results might not optimal.\n")
+				cat("Motif characterization will still proceed with the default model but obtained results might not be optimal.\n")
 				cat("Additional information can be found in our GitHub repository.\n")
 				basecaller <- "Albacore"
 				bc_version <- "v2.3.4"
@@ -342,6 +342,7 @@ merge.stat.chunks <- function(data_path, inSilico=FALSE){
 
 	stat_data <- foreach(stat_file=stat_files_info$file_path, .combine=rbind.fill, .multicombine=TRUE, .maxcombine=500) %do% { # TODO progress
 		tmp_stat_data <- readRDS(stat_file)
+
 		#Reorder column TODO fix scoring.position when not enough data; default res
 		if(inSilico){
 			if(any(grepl("contig",colnames(tmp_stat_data)))){
@@ -458,6 +459,29 @@ hide.ambiguous.matches <- function(gr_ambiguous_position, tmp_motif_matches, dir
 	return(gr_motif_matches)
 }
 
+find.isolated.motifs.sub <- function(motif_summary, idx_motif, direction, g_seq, gr_ambiguous_position){
+	original_motif <- motif_summary$motif[idx_motif]
+	mod_pos <- motif_summary$mod_pos[idx_motif]
+	len_motif <- nchar(original_motif)
+
+	if(direction=="rev"){
+		motif <- reverseComplement(DNAString(original_motif)) # Double checked
+		mod_pos <- (len_motif - mod_pos) + 1
+	}else{
+		motif <- original_motif
+	}
+
+	tmp_motif_matches <- vmatchPattern(motif, g_seq, fixed=FALSE)
+	tmp_motif_matches <- hide.ambiguous.matches(gr_ambiguous_position, tmp_motif_matches, direction)
+
+	motif_matches <- data.frame(contig_name=seqnames(tmp_motif_matches), contig_pos_motif=start(tmp_motif_matches) + (mod_pos - 1)) # Mark mod_pos
+	if(nrow(motif_matches)>0){
+		motif_matches$motif <- as.factor(as.character(original_motif)) # Add motif
+	}
+
+	return(motif_matches)
+}
+
 find.isolated.motifs <- function(genome, motif_summary, iupac_nc, left_signal, right_signal, error_margin, nbCPU, verbose=TRUE){
 	g_seq <- readDNAStringSet(genome)
 	names(g_seq) <- sapply(strsplit(names(g_seq), " "), `[`, 1) # Keep only first word like bwa index
@@ -473,31 +497,18 @@ find.isolated.motifs <- function(genome, motif_summary, iupac_nc, left_signal, r
 		# List all modified bases and keep duplicate
 		if(nbCPU>1){
 			registerDoMC(nbCPU)
-		}
-		motifs_matches <- foreach(idx_motif=seq(1,nrow(motif_summary)), .combine=rbind) %dopar% {
-			original_motif <- motif_summary$motif[idx_motif]
-			mod_pos <- motif_summary$mod_pos[idx_motif]
-			len_motif <- nchar(original_motif)
+			motifs_matches <- foreach(idx_motif=seq(1,nrow(motif_summary)), .combine=rbind) %dopar% {
+				motif_matches <- find.isolated.motifs.sub(motif_summary, idx_motif, direction, g_seq, gr_ambiguous_position)
 
-			if(direction=="rev"){
-				motif <- reverseComplement(DNAString(original_motif)) # Double checked
-				mod_pos <- (len_motif - mod_pos) + 1
-			}else{
-				motif <- original_motif
+				return(motif_matches)
 			}
-
-			tmp_motif_matches <- vmatchPattern(motif, g_seq, fixed=FALSE)
-			tmp_motif_matches <- hide.ambiguous.matches(gr_ambiguous_position, tmp_motif_matches, direction)
-
-			motif_matches <- data.frame(contig_name=seqnames(tmp_motif_matches), contig_pos_motif=start(tmp_motif_matches) + (mod_pos - 1)) # Mark mod_pos
-			if(nrow(motif_matches)>0){
-				motif_matches$motif <- as.factor(as.character(original_motif)) # Add motif
-			}
-
-			return(motif_matches)
-		}
-		if(nbCPU>1){
 			registerDoSEQ()
+		}else{
+			motifs_matches <- foreach(idx_motif=seq(1,nrow(motif_summary)), .combine=rbind) %do% {
+				motif_matches <- find.isolated.motifs.sub(motif_summary, idx_motif, direction, g_seq, gr_ambiguous_position)
+
+				return(motif_matches)
+			}
 		}
 
 		left_free <- left_signal + right_signal + error_margin  # same as right_free TODO switch strand if unbalanced value
@@ -981,7 +992,7 @@ explore.winParams.motif.detection <- function(genome, final_stat_data, iupac_nc,
 			DNA_mod_stat_data$motif[DNA_mod_stat_data$col_motif==-1] <- "MultipleMotifs"
 			DNA_mod_stat_data <- DNA_mod_stat_data %>%
 				group_by(position_peak) %>%
-				summarise(N_motifs=length(motif), motifs=paste(motif, collapse=" "))
+				summarize(N_motifs=length(motif), motifs=paste(motif, collapse=" "), .groups="drop_last")
 
 			tmp_seq_isolated_motif <- as.data.frame(table(DNA_mod_stat_data$motifs[DNA_mod_stat_data$N_motifs==1]))
 			colnames(tmp_seq_isolated_motif) <- c("motif","freq")
@@ -1227,7 +1238,7 @@ refine.meme.motif <- function(sig_motif_detail, meme_results, iupac_nc){
 	uncertainties <- rel_frequencies %>%
 		mutate(tmp_uncertainty=rel_freq * log2(rel_freq)) %>%
 		group_by(pos) %>%
-		summarize(uncertainty=-sum(tmp_uncertainty, na.rm=TRUE))
+		summarize(uncertainty=-sum(tmp_uncertainty, na.rm=TRUE), .groups="drop_last")
 
 	information_contents <- uncertainties %>%
 		mutate(information_content=log2(DNA_base) - (uncertainty + correction))
@@ -1242,7 +1253,7 @@ refine.meme.motif <- function(sig_motif_detail, meme_results, iupac_nc){
 		filter(pos_h>min_pos_h) %>%
 		filter(base_h>min_base_h) %>%
 		group_by(pos) %>%
-		summarize(bases=paste0(base, collapse="")) %>%
+		summarize(bases=paste0(base, collapse=""), .groups="drop_last") %>%
 		mutate(code=as.character(iupac_nc$code[match(bases,iupac_nc$choice)]))
 
 	list_pos <- seq(min(tmp_motif$pos), max(tmp_motif$pos))
@@ -1251,7 +1262,7 @@ refine.meme.motif <- function(sig_motif_detail, meme_results, iupac_nc){
 	}
 	tmp_motif <- tmp_motif %>%
 		arrange(pos) %>%
-		summarize(motif=paste0(code, collapse=""))
+		summarize(motif=paste0(code, collapse=""), .groups="drop_last")
 
 	motif <- tmp_motif$motif
 
@@ -1549,21 +1560,27 @@ tag.mutated.motifs <- function(potential_motif, discovered_motifs, final_stat_da
 score.mutated.motifs <- function(tagged_final_stat_data){
 	motif_summary <- tagged_final_stat_data %>% # TODO try to improve summary function
 		group_by(mutation_type, pos_mutation, distance) %>%
-		summarise(score2=abs(mean(mean_diff, na.rm=TRUE))) %>%
+		summarize(score2=abs(mean(mean_diff, na.rm=TRUE)), .groups="drop_last") %>%
 		group_by(mutation_type, pos_mutation) %>%
-		summarise(score=sum(score2))
+		summarize(score=sum(score2), .groups="drop_last")
 	motif_summary$mutation_type <- ordered(motif_summary$mutation_type, levels=c("T","G","C","A")) # Same order as facet_grid
 
 	return(motif_summary)
 }
 
-refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, seq_params, iupac_nc, path_output, graph_subtitle, automated=FALSE){
+refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, seq_params, iupac_nc, path_output, graph_subtitle, automated=TRUE){
 	print_message(paste0("Generating refining plot for ",potential_motif))
 	len_motif <- nchar(potential_motif)
 
 	tagged_final_stat_data <- tag.mutated.motifs(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, iupac_nc)
 
 	if(!is.null(tagged_final_stat_data)){
+		if(automated){
+			compound_name <- paste0(potential_motif)
+		}else{
+			compound_name <- paste0(potential_motif,"_",graph_subtitle)
+		}
+
 		gp <- ggplot(tagged_final_stat_data) +
 			geom_jitter(aes(x=as.factor(distance), y=mean_diff), pch=46, height=0) +
 			geom_violin(aes(x=as.factor(distance), y=mean_diff), alpha=0.5) +
@@ -1573,15 +1590,15 @@ refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, ge
 			labs(title=paste0("Refine ",potential_motif," motif"), subtitle=paste0(graph_subtitle)) +
 			labs(x="Relative position from motif (-6:motif:1)", y="Mean pA differences") +
 			theme(text=element_text(size=20)) # strip.text.x=element_text(size=8)
-		pdf(paste0(path_output,"/","Refine_Motifs_",potential_motif,".pdf"), width=4*len_motif, height=4*4)
+		pdf(paste0(path_output,"/","Refine_Motifs_",compound_name,".pdf"), width=4*len_motif, height=4*4)
 		print(gp)
 		dev.off()
 
 		# motif_summary <- tagged_final_stat_data %>% # TODO try to improve summary function
 		# 	group_by(mutation_type, pos_mutation, distance) %>%
-		# 	summarise(score2=abs(mean(mean_diff, na.rm=TRUE))) %>%
+		# 	summarize(score2=abs(mean(mean_diff, na.rm=TRUE)), .groups="drop_last") %>%
 		# 	group_by(mutation_type, pos_mutation) %>%
-		# 	summarise(score=sum(score2))
+		# 	summarize(score=sum(score2), .groups="drop_last")
 		# motif_summary$mutation_type <- ordered(motif_summary$mutation_type, levels=c("T","G","C","A")) # Same order as facet_grid
 		motif_summary <- score.mutated.motifs(tagged_final_stat_data)
 
@@ -1592,7 +1609,7 @@ refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, ge
 			scale_fill_gradientn(colours=myPalette(100)) +
 			labs(title=paste0("Refine scores for ",potential_motif," motif"), subtitle=paste0(graph_subtitle)) +
 			labs(x="Mutated Position", y="Mutated Base", fill="Score")
-		pdf(paste0(path_output,"/","Refine_Motifs_scores_",potential_motif,".pdf"), width=1*len_motif, height=1*4)
+		pdf(paste0(path_output,"/","Refine_Motifs_scores_",compound_name,".pdf"), width=1*len_motif, height=1*4)
 		print(gp)
 		dev.off()
 
@@ -1611,7 +1628,7 @@ readline_clean <- function(prompt){
 	return(response)
 }
 
-auto.comfirm.motif <- function(discovered_motifs, potential_motif, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle, score_threshold=2){
+auto.confirm.motif <- function(discovered_motifs, potential_motif, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle, score_threshold=2){
 	refinement_data <- refine.motif(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle)
 
 	if(!is.null(refinement_data)){
@@ -1619,12 +1636,19 @@ auto.comfirm.motif <- function(discovered_motifs, potential_motif, final_stat_da
 			filter(score>score_threshold) %>%
 			arrange(pos_mutation, desc(mutation_type)) %>%
 			group_by(pos_mutation) %>%
-			summarize(bases=paste0(mutation_type, collapse="")) %>%
+			summarize(bases=paste0(mutation_type, collapse=""), .groups="drop_last") %>%
 			group_by(pos_mutation) %>%
 			mutate(code=as.character(iupac_nc$code[grepl(paste0("^",bases,"$"), as.character(iupac_nc$choice))]))
-		paste0(res$code, collapse="")
-	}else{
+		if(nrow(res)>3){
+			# Automated motif refinment results
 
+			return(paste0(res$code, collapse=""))
+		}else{
+			# Automated motif refinment is too short
+			return(NA)
+		}
+	}else{
+		return(NA)
 	}
 }
 
@@ -1704,6 +1728,7 @@ motif.detection <- function(motifs_peaks_data, final_stat_data, genome, iupac_nc
 
 	nbLoops <- 1
 	continue_research <- TRUE
+ 	no_progress <- FALSE
 	while(continue_research){ # TODO Stop when top hits quantile below x threshold? When no more motifs?
 		if(is.na(threshold)){
 			selected_peaks_data <- filter.best.peaks(motifs_peaks_data, nb_peaks)
@@ -1731,16 +1756,24 @@ motif.detection <- function(motifs_peaks_data, final_stat_data, genome, iupac_nc
 		print_message(paste0(c("Potentials motifs:", paste(potential_motifs)), collapse=" "))
 		if(!is.null(potential_motifs)){
 			if(automated){
-				# discovered_motifs <- unique(c(discovered_motifs, potential_motifs))
 				current_discovered_motifs <- discovered_motifs
+
 				newly_discovered_motifs <- foreach(potential_motif=potential_motifs, .combine=c) %do% {
 					graph_subtitle <- paste0("sf: ",smooth_func,", sw: ",smooth_win_size,", pw: ",peak_win_size,", stat: ",stat_val,", np: ",nb_peaks,", th: ",threshold)
-					tmp_newly_discovered_motifs <- auto.comfirm.motif(current_discovered_motifs, potential_motif, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle, score_threshold)
+					tmp_newly_discovered_motifs <- auto.confirm.motif(current_discovered_motifs, potential_motif, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle, score_threshold)
 					current_discovered_motifs <- unique(c(current_discovered_motifs, tmp_newly_discovered_motifs))
+					current_discovered_motifs <- current_discovered_motifs[!is.na(current_discovered_motifs)] # Remove potential unrefined motif
 
 					return(tmp_newly_discovered_motifs)
 				}
-				discovered_motifs <- unique(c(discovered_motifs, newly_discovered_motifs))	
+
+ 				if(all(is.na(newly_discovered_motifs))){
+					# No more motif found
+ 					no_progress <- TRUE
+ 				}else{
+					discovered_motifs <- unique(c(discovered_motifs, newly_discovered_motifs))	
+					discovered_motifs <- discovered_motifs[!is.na(discovered_motifs)] # Remove potential unrefined motif
+ 				}
 			}else{
 				newly_discovered_motifs <- foreach(potential_motif=potential_motifs, .combine=c) %do% {
 					graph_subtitle <- paste0("sf: ",smooth_func,", sw: ",smooth_win_size,", pw: ",peak_win_size,", stat: ",stat_val,", np: ",nb_peaks,", th: ",threshold)
@@ -1755,6 +1788,9 @@ motif.detection <- function(motifs_peaks_data, final_stat_data, genome, iupac_nc
 		print_message(paste0(c("Discovered motifs:", paste(discovered_motifs)), collapse=" "))
 
 		if(automated && is.null(potential_motifs) ){
+			# No more motif found in automated processing
+			continue_research <- FALSE
+		}else if(automated && no_progress){
 			# No more motif found in automated processing
 			continue_research <- FALSE
 		}else if(automated && !is.null(potential_motifs)){
@@ -1852,7 +1888,7 @@ count.motifs <- function(genome, motif_summary, iupac_nc, nbCPU){
 	motifs <- find.isolated.motifs(genome, motif_summary, iupac_nc, left_signal, right_signal, error_margin, nbCPU, FALSE)
 	motifs_count <- motifs %>%
 		group_by(motif) %>%
-		summarize(n=n())
+		summarize(n=n(), .groups="drop_last")
 
 	return(motifs_count)
 }
@@ -2057,7 +2093,7 @@ find.signature.center <- function(final_stat_data, motif_summary, genome, nbCPU,
 		print_message(paste0("    Score ",motif," modified position"))
 		motif_score <- tagged_final_stat_data %>% # TODO could maybe improve summary function
 			group_by(distance) %>%
-			summarize(score_position=abs(mean(mean_diff, na.rm=TRUE))) %>%
+			summarize(score_position=abs(mean(mean_diff, na.rm=TRUE)), .groups="drop_last") %>%
 			mutate(score_window=rollapplyr(score_position, 5, mean, partial=TRUE, fill=NA, align="center"))
 		signature_center <- motif_score %>%
 			filter(max(score_window)==score_window)
@@ -2129,7 +2165,7 @@ characterize.signature <- function(classification_data, base_name){
 
 	classification_data_summary_all <- classification_data %>%
 		group_by(distance) %>%
-		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE)) %>%
+		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE), .groups="drop_last") %>%
 		gather(stat, value, -c(distance))
 
 	gp_overall_summary <- ggplot(classification_data_summary_all) +
@@ -2162,7 +2198,7 @@ characterize.signature <- function(classification_data, base_name){
 
 	classification_data_summary_mod <- classification_data %>%
 		group_by(mod, distance) %>%
-		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE)) %>%
+		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE), .groups="drop_last") %>%
 		gather(stat, value, -c(mod, distance))
 
 	gp_ByModType_summary <- ggplot(classification_data_summary_mod) +
@@ -2181,7 +2217,7 @@ characterize.signature <- function(classification_data, base_name){
 
 	classification_data_summary_motif <- classification_data %>%
 		group_by(motif, distance) %>%
-		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE)) %>%
+		summarize(abs_mean=abs(mean(mean_diff,na.rm=TRUE)), sd=sd(mean_diff,na.rm=TRUE), .groups="drop_last") %>%
 		gather(stat, value, -c(motif, distance))
 
 	myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
@@ -2345,12 +2381,12 @@ prepare.classification.data <- function(methylation_signal, strain_id, motif_sum
 
 	if(data_type=="train"){
 		motifs_signature <- motifs_signature %>%
-			mutate(id=paste0(strain_id,"_",motif_summary$explicit_motif[match(motif,motif_summary$motif)],"_",motif_summary$mod_type[match(motif,motif_summary$motif)],"_",gsub("_","",contig),"_",pos_motif,"_",dir,"_",strand)) %>%
+			mutate(id=paste0(gsub("_","",strain_id),"_",motif_summary$explicit_motif[match(motif,motif_summary$motif)],"_",motif_summary$mod_type[match(motif,motif_summary$motif)],"_",gsub("_","",contig),"_",pos_motif,"_",dir,"_",strand)) %>%
 			dplyr::select(c(id,mean_diff,distance)) %>%
 			spread(distance, mean_diff)
 	}else if(data_type=="classify"){
 		motifs_signature <- motifs_signature %>%
-			mutate(id=paste0(strain_id,"_",motif,"_",gsub("_","",contig),"_",pos_motif,"_",dir,"_",strand)) %>%
+			mutate(id=paste0(gsub("_","",strain_id),"_",motif,"_",gsub("_","",contig),"_",pos_motif,"_",dir,"_",strand)) %>%
 			dplyr::select(c(id,mean_diff,distance)) %>%
 			spread(distance, mean_diff)
 	}
@@ -2470,7 +2506,7 @@ draw.signature.heatmap <- function(motifs_signature, motif_summary, selected_pos
 	motif_summary <- motif_summary[motif_summary$explicit_motif %in% unique(heatmap_data$motif),]
 	# gp_heights <- heatmap_data %>%
 	# 	group_by(motif) %>%
-	# 	summarize(height=6 + (n()/5000))
+	# 	summarize(height=6 + (n()/5000), .groups="drop_last")
 	# motif_summary <- merge(motif_summary, gp_heights, by.x="explicit_motif", by.y="motif")
 
 	registerDoMC(nbCPU)
@@ -3387,7 +3423,7 @@ draw.classifier.performance.realistic <- function(performance_classifier, graph_
 
 	summary2_meta_classifier_details <- summary_meta_classifier_details %>%
 		group_by(excluded_motifs, classifier, TP) %>%
-		summarize(global_score=sum(score))
+		summarize(global_score=sum(score), .groups="drop_last")
 
 	gp <- ggplot(summary2_meta_classifier_details, aes(TP, classifier)) +
 		geom_tile(aes(fill=global_score), colour="white") +
@@ -3414,9 +3450,9 @@ draw.classifier.performance.realistic <- function(performance_classifier, graph_
 
 	final_stat <- summary_meta_classifier_details %>%
 		group_by(classifier, excluded_motifs) %>%
-		summarize(res=ifelse(any(tmp),"Match","Error")) %>%
+		summarize(res=ifelse(any(tmp),"Match","Error"), .groups="drop_last") %>%
 		group_by(classifier, res) %>%
-		summarize(res2=n()) %>%
+		summarize(res2=n(), .groups="drop_last") %>%
 		spread(res,res2) %>%
 		mutate(Accuracy=Match*100/(Match+ifelse(is.na(Error),0,Error)))
 	print(final_stat)
@@ -3476,7 +3512,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 		# By DNA modification type and offset
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(Ref_Mod, Ref_Pos, classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)) %>%
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE), .groups="drop_last") %>%
 			mutate(group=paste0(TP,".",Ref_Mod))
 		summary_meta_classifier_details$group <- as.factor(summary_meta_classifier_details$group) # Bad order
 		summary_meta_classifier_details$group <- factor(summary_meta_classifier_details$group, levels=mixedsort(levels(summary_meta_classifier_details$group)))
@@ -3496,7 +3532,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 		# Global
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)/nb_position)
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE)/nb_position, .groups="drop_last")
 
 		gp <- ggplot(summary_meta_classifier_details, aes(TP, classifier)) +
 			geom_tile(aes(fill=sum_Freq), colour="white") +
@@ -3527,7 +3563,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(Ref_Pos, classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)) %>%
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE), .groups="drop_last") %>%
 			mutate(group=paste0(TP,".",Ref_Pos))
 		summary_meta_classifier_details$group <- as.factor(summary_meta_classifier_details$group) # Bad order
 		summary_meta_classifier_details$group <- factor(summary_meta_classifier_details$group, levels=mixedsort(levels(summary_meta_classifier_details$group)))
@@ -3550,7 +3586,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(Ref_Mod, classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)/nb_position) %>%
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE)/nb_position, .groups="drop_last") %>%
 			mutate(group=paste0(TP,".",Ref_Mod))
 		summary_meta_classifier_details$group <- as.factor(summary_meta_classifier_details$group) # Good order
 
@@ -3574,7 +3610,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 		# By DNA modification type
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(classifier, excluded_motifs, TP, Reference) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE)) %>%
+			summarize(sum_Freq=sum(Freq, na.rm=TRUE), .groups="drop_last") %>%
 			mutate(group=paste0(TP,".",Reference))
 		summary_meta_classifier_details$group <- as.factor(summary_meta_classifier_details$group) # Good order
 
@@ -3593,7 +3629,7 @@ draw.classifier.performance <- function(meta_classifier_summary, meta_classifier
 		# Global
 		summary_meta_classifier_details <- meta_classifier_details %>%
 			group_by(classifier, excluded_motifs, TP) %>%
-			summarise(sum_Freq=sum(Freq, na.rm=TRUE))
+			summarizse(sum_Freq=sum(Freq, na.rm=TRUE))
 
 		gp <- ggplot(summary_meta_classifier_details, aes(TP, classifier)) +
 			geom_tile(aes(fill=sum_Freq), colour="white") +
@@ -3659,9 +3695,9 @@ draw.classifier.results <- function(performance_classifier, motif_summary, base_
 			group_by(excluded_motifs, classifier, Ref_Pos) %>% # Ref_Pos==Mod_Type * Offset
 			mutate(Perc=(Freq*100)/sum(Freq)) %>%
 			group_by(excluded_motifs, classifier, Ref_Pos, Pred_Mod) %>%
-			summarize(tmp_score=sum(Perc)) %>% # Per offseted subset
+			summarize(tmp_score=sum(Perc), .groups="drop_last") %>% # Per offseted subset
 			group_by(excluded_motifs, classifier, Pred_Mod) %>%
-			summarize(score_mod=sum(tmp_score)/n()) %>%
+			summarize(score_mod=sum(tmp_score)/n(), .groups="drop_last") %>%
 			dplyr::rename(Mod_Type=Pred_Mod)
 
 		# Duplicate but needed for mod pos
@@ -3680,7 +3716,7 @@ draw.classifier.results <- function(performance_classifier, motif_summary, base_
 			mutate(Mod_Pos=Motif_Pos - relative_Pred_Pos) %>%
 			filter(Ref_Mod==Mod_Type) %>%
 			group_by(excluded_motifs, classifier, Mod_Pos) %>%
-			summarize(score_pos=sum(Perc))
+			summarize(score_pos=sum(Perc), .groups="drop_last")
 
 		return(list(type=as.data.frame(predicted_mod_type), pos=as.data.frame(predicted_mod_pos)))
 	}
@@ -3761,17 +3797,17 @@ draw.classifier.results <- function(performance_classifier, motif_summary, base_
 # For unknown motifs 
 select.motif <- function(classification_data, motif){
 	motif_annotation <- attr(classification_data, "annotation_motif")
-	row_to_keep <- grepl(motif, motif_annotation$id)
+	row_to_keep <- grepl(motif, as.character(motif_annotation$id))
 
-	classification_data <- classification_data[row_to_keep,]
-	attr(classification_data, "annotation_motif") <- attr(classification_data, "annotation_motif")[row_to_keep,]
-	attr(classification_data, "annotation_mod") <- attr(classification_data, "annotation_mod")[row_to_keep,]
-	attr(classification_data, "annotation_dir") <- attr(classification_data, "annotation_dir")[row_to_keep,]
-	if("annotation_strain" %in% names(attributes(classification_data))){
-		attr(classification_data, "annotation_strain") <- attr(classification_data, "annotation_strain")[row_to_keep,]
-	}
+	subset_classification_data <- classification_data[row_to_keep,]
+	attr(subset_classification_data, "annotation_motif") <- attr(classification_data, "annotation_motif")[row_to_keep,]
+	# attr(classification_data, "annotation_mod") <- attr(classification_data, "annotation_mod")[row_to_keep,]
+	# attr(classification_data, "annotation_dir") <- attr(classification_data, "annotation_dir")[row_to_keep,]
+	# if("annotation_strain" %in% names(attributes(classification_data))){
+	# 	attr(classification_data, "annotation_strain") <- attr(classification_data, "annotation_strain")[row_to_keep,]
+	# }
 
-	return(classification_data)
+	return(subset_classification_data)
 }
 
 classify.detected.motifs <- function(methylation_signal, strain_id, motif_center_summary, model, genome, min_cov, keepIsolated, iupac_nc, nbCPU){
@@ -3793,7 +3829,7 @@ classify.detected.motifs <- function(methylation_signal, strain_id, motif_center
 	print_message("  Classify motif(s)")
 	classification_results <- foreach(idx_motif=seq(1, nrow(motif_center_summary)), .combine=rbind) %do% {
 		# Select motif & approximate modification position
-		motif <- paste0(strain_id,"_",motif_center_summary$motif[idx_motif])
+		motif <- paste0(gsub("_","",strain_id),"_",motif_center_summary$motif[idx_motif])
 		possible_mod_pos <- motif_center_summary$possible_mod_pos[idx_motif]
 
 		# Select corresponding broad signature
@@ -3808,7 +3844,7 @@ classify.detected.motifs <- function(methylation_signal, strain_id, motif_center
 		features_classification_data <- features_classification_data %>% dplyr::select("label",paste0("pos",seq(1,ncol(features_classification_data)-1))) # Reorder columns
 
 		# Characterize each motif occurrences
-		print_message(paste0("    Classifing ",motif))
+		print_message(paste0("    Classifing ",motif_center_summary$motif[idx_motif]))
 		if(!is.null(model$modelInfo$library)){
 			if(model$modelInfo$library=="randomForest"){
 				prediction_results <- predict(model, subset(features_classification_data, select=-c(label)))
@@ -4138,7 +4174,7 @@ new.summarize.feature.ROC <- function(detailed_parameters, stat_data, ROC_parame
 
 					return(data.frame(tmp_TN=tmp_TN, tmp_FP=tmp_FP))
 				} %>%
-					summarize(mean_TN=mean(tmp_TN), sd_TN=sd(tmp_TN), mean_FP=mean(tmp_FP), sd_FP=sd(tmp_FP))
+					summarize(mean_TN=mean(tmp_TN), sd_TN=sd(tmp_TN), mean_FP=mean(tmp_FP), sd_FP=sd(tmp_FP), .groups="drop_last")
 
 				TP3 <- TP
 				FN3 <- FN
@@ -4157,7 +4193,7 @@ new.summarize.feature.ROC <- function(detailed_parameters, stat_data, ROC_parame
 
 					return(data.frame(tmp_TP=tmp_TP, tmp_FN=tmp_FN))
 				} %>%
-					summarize(mean_TP=mean(tmp_TP), sd_TP=sd(tmp_TP), mean_FN=mean(tmp_FN), sd_FN=sd(tmp_FN))
+					summarize(mean_TP=mean(tmp_TP), sd_TP=sd(tmp_TP), mean_FN=mean(tmp_FN), sd_FN=sd(tmp_FN), .groups="drop_last")
 
 				TP3 <- floor(subsampling_res$mean_TP)
 				FN3 <- floor(subsampling_res$mean_FN)

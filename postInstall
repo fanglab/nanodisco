@@ -26,6 +26,14 @@ tar -zxf data_default.tar.gz -C /home && rm data_default.tar.gz
 # Install Nanopolish version 0.11.0
 git clone --recursive -b v0.11.0 https://github.com/jts/nanopolish.git nanopolish-0.11.0
 cd nanopolish-0.11.0
+
+# Edit Makefile to update dead link
+sed -i -e 's@\-e $(EIGEN_VERSION).tar.bz2@\-e eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
+sed -i -e 's@wget http://bitbucket.org/eigen/eigen/get/$(EIGEN_VERSION).tar.bz2@wget https://gitlab.com/libeigen/eigen/\-/archive/$(EIGEN_VERSION)/eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
+sed -i -e 's@tar \-xjf $(EIGEN_VERSION).tar.bz2@tar \-xjf eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
+sed -i -e 's@mv eigen\-eigen\-\* eigen@mv eigen\-$(EIGEN_VERSION) eigen@g' Makefile
+
+# Resume Nanopolish install
 make
 cp nanopolish /usr/bin/nanopolish
 cp etc/r9-models/r9.4_450bps.nucleotide.6mer.template.model /usr/bin/r9.4_450bps.nucleotide.6mer.template.model
@@ -72,7 +80,7 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('iterators', version='1.0.10', upgrade='never'); \
     BiocManager::install('GenomicRanges', update=FALSE); \
     BiocManager::install('Rsamtools', update=FALSE); \
-    devtools::install_version('pillar', version='1.3.1', upgrade='never'); \
+    devtools::install_version('pillar', version='1.4.6', upgrade='never'); \
     devtools::install_version('bindrcpp', version='0.2', upgrade='never'); \
     devtools::install_version('dplyr', version='0.8.0.1', upgrade='never'); \
     BiocManager::install('GenomicAlignments', update=FALSE); \
@@ -111,11 +119,12 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('nnet', version='7.3-12', upgrade='never'); \
     devtools::install_version('randomForest', version='4.6-12', upgrade='never'); \
     devtools::install_version('klaR', version='0.6-12', upgrade='never'); \
-    devtools::install_version('caret', version='6.0-76', upgrade='never'); \
+    devtools::install_version('caret', version='6.0-85', upgrade='never'); \
     devtools::install_version('XML', version='3.98-1.7', upgrade='never'); \
     BiocManager::install('rhdf5', update=FALSE); \
     BiocManager::install('BSgenome', update=FALSE); \
     BiocManager::install('rtracklayer', update=FALSE); \
+    devtools::install_version('progress', version='1.2.2', upgrade='never'); \
 "
 
 # Install perl modules for meme
