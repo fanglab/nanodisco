@@ -11,7 +11,7 @@ Commands details
 * `difference`_: Compute nanopore signal difference between a native and a whole genome amplified (WGA) dataset
 * `merge`_: Combine nanopore signal difference for all processed chunks in directory
 * `motif`_: *De novo* discovery of methylation motifs
-* `refine` : Generate refine plot for candidate methylation motifs
+* `refine`_: Generate refine plot for candidate methylation motifs
 * `characterize`_: Predict the methylation type and fine-map the modification within de novo discovered methylation motifs file
 * `coverage`_: Compute average coverage for each contig in a reference genome (uses bedtools genomecov)
 * `profile`_: Compute the methylation profile matrix for a metagenome sample (methylation feature at common or expected methylation motifs)
