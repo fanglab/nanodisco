@@ -1,7 +1,5 @@
 # nanodisco
 
-**Important**: On 9/14/2020, nanodisco is updated from `v1.0.0` to `v1.0.1` and it will be unavailable from the usual installation command (i.e `singularity pull --name nanodisco.sif shub://fanglab/nanodisco`). Meanwhile, `nanodisco v1.0.0` can be retrieved from the stable repository using `singularity pull --name nanodisco.sif shub://fanglab/nanodisco:v1.0.0`. Once the remote servers are synchronized, `nanodisco v1.0.1` will be available through the usual command. The new `v1.0.1` version contains some quality of life updates, including the improved handling of fast5 with multiple basecalling, a new command to help with motifs refinements, and fixes for reported issues ([#4](https://github.com/fanglab/nanodisco/issues/4), [#5](https://github.com/fanglab/nanodisco/issues/5), [#7](https://github.com/fanglab/nanodisco/issues/7), and [#9](https://github.com/fanglab/nanodisco/issues/9)).
-
 `nanodisco` is a toolbox for *de novo* discovery of all the three types (6mA, 5mC and 4mC) of DNA methylation from individual bacteria and microbiomes using nanopore sequencing. For microbiomes, nanodisco also supports the use of DNA methylation patterns as natural epigenetic barcodes to facilitate high resolution metagenomic binning. Specifically, nanodisco can be used to:
 
 - *De novo* discover DNA methylation motifs, identify specific type (6mA, 5mC or 4mC, namely *typing*) of a methylation motif, and identify which specific position within the motif is methylated (namely *fine mapping*). 
@@ -10,6 +8,8 @@
 
 ## Authors' notes
 We are actively developing `nanodisco` to facilitate usage and broaden features. All feedback is more than welcome. You can reach us on twitter ([@iamfanggang](https://twitter.com/iamfanggang) and [@AlanTourancheau](https://twitter.com/AlanTourancheau)) or directly through the [GitHub issues system](https://github.com/fanglab/nanodisco/issues).
+
+09/14/20: Update to `v1.0.1`, including the new `nanodisco refine` command and the `--basecall_version` option to select the exact basecalled reads for preprocessing.
 
 ## Content
 + [Installation](#Installation)
