@@ -11,6 +11,7 @@ Commands details
 * `difference`_: Compute nanopore signal difference between a native and a whole genome amplified (WGA) dataset
 * `merge`_: Combine nanopore signal difference for all processed chunks in directory
 * `motif`_: *De novo* discovery of methylation motifs
+* `refine`_: Generate refine plot for candidate methylation motifs
 * `characterize`_: Predict the methylation type and fine-map the modification within de novo discovered methylation motifs file
 * `coverage`_: Compute average coverage for each contig in a reference genome (uses bedtools genomecov)
 * `profile`_: Compute the methylation profile matrix for a metagenome sample (methylation feature at common or expected methylation motifs)
@@ -38,6 +39,7 @@ Extract reads (.fasta) from base called fast5 files and map reads on a reference
      -s : Name to the sample processed (e.g. Ecoli_native).
      -o : Path to output directory (e.g. ./analysis/Ecoli).
      -r : Path to a reference genome (i.e. fasta). Necessary index will be generated at runtime.
+     --basecall_version : (Optional) Specify basecalling version if multiple ones available (<basecaller:version>, e.g. Guppy:3.2.4).
      -h : Print help.
 
 **Output:**
@@ -104,6 +106,7 @@ Advanced parameters. We recommend leaving them set to default values:
      -e : Minimum number of events per position. Default is 5.
      -j : Type of filtering for mapping. Default is noAddSupp.
      -k : Minimum mapped read length. Default is 0 (no filtering).
+     --basecall_version : (Optional) Specify basecalling version if multiple ones available, for tracking only (<basecaller:version>, e.g. Guppy:3.2.4).
 
 **Output:**
 
@@ -167,6 +170,7 @@ Advanced parameters. We recommend leaving them set to default values:
 .. code-block:: none
 
      -c                : (Optional) Comma separated list of contigs (e.g. contig_1,contig_3).
+     -m                : (Optional) Comma separated list of motifs (<motif_1,motif_2>, e.g. GATC,CCWGG).
      --contigs_file    : (Optional) Path to file with list of contigs (one per line).
      -a                : Disable manual motif discovery procedure (not recommended). Default is FALSE.
      -t                : Smoothed peaks p-values threshold for sequence selection (if double: peaks > <threshold> or if NA: top <nb_peaks> only). Default is NA.
@@ -181,6 +185,31 @@ Advanced parameters. We recommend leaving them set to default values:
 * Comma separated list of *de novo* discovered methylation motifs.
 * Intermediate meme files (``<path_output>/motif_detection/``)
 * Refinement plots for each motif without ``-a`` option.
+
+.. _refine:
+
+refine
+======
+
+Generate refine plot for candidate methylation motifs.
+
+**Usage:**
+
+.. code-block:: none
+
+   nanodisco refine -p <nb_threads> -b <name_output> -d <path_difference> -o <path_output> -m <motif_1,motif_2> -M <motif_3,motif_4|all> -r <path_genome>
+     -p : Number of threads to use.
+     -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
+     -d : Path to current differences file (*.RDS produced from nanodisco difference).
+     -o : Path to output directory. Default is current directory.
+     -m : Comma separated list of discovered motifs (e.g. GATC,CCWGG).
+     -M : Comma separated list of candidate motifs or 'all' to analyze '-m' motifs individually (e.g. GATC,CCWGG).
+     -r : Path to a reference genome (i.e. fasta).
+     -h : Print help.
+
+**Output:**
+
+* Refinement plots for the candidate motif(s) with ``-M <motif_3,motif_4>`` option, or each motif with ``-M all`` option.
 
 .. _characterize:
 
