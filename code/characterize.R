@@ -76,6 +76,9 @@ stifle <- foreach(model_name=list_model) %do% {
 	# Plot predictions as heatmap
 	draw.classification.results(classification_results, paste0(base_name,"_",model_name,"_model"), path_output)
 
+	# Write predictions as tsv
+	write.best.classification.results(classification_results, paste0(base_name,"_",model_name,"_model"), path_output)
+
 	return(NA)
 }
 
