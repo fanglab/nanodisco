@@ -21,6 +21,16 @@ load.libraries.metagenome <- function(){
 	library(progress)
 }
 
+load.libraries.score <- function(){
+	library(zoo)
+	library(stringr)
+	library(Biostrings) # For sequence composition
+	library(GenomicRanges)
+	library(plyr)
+	library(dplyr)
+	library(doMC)
+}
+
 print_message <- function(message){
 	# Print message to terminal
 	cat(paste0("[",Sys.time(),"] ",message,".\n"))
@@ -1966,6 +1976,29 @@ plot.tsne.motifs.score <- function(tsne_data, annotation, base_name, color_palet
 	}
 }
 
+write.binned.fasta <- function(metagenome, metagenome_annotation, binning_annotation, base_name, path_output){
+	# Read metagenome fasta file
+	g_metagenome <- readDNAStringSet(metagenome)
+
+	# Clean up bin names to use as file names
+	binning_annotation$clean_id <- gsub('[\\*\\?\\"\\\\/\\<\\>\\:\\|]',"_",binning_annotation$id)
+	binning_annotation$clean_id <- gsub('[()]',"",binning_annotation$clean_id)
+	binning_annotation$clean_id <- gsub('[[:space:]]',"_",binning_annotation$clean_id)
+
+	# Prepare the annotation
+	metagenome_annotation_tmp <- merge(metagenome_annotation, binning_annotation, by="contig", all.x=TRUE)
+	metagenome_annotation_tmp$clean_id[is.na(metagenome_annotation_tmp$clean_id)] <- "Unbinned"
+	
+	# Write binned fasta files
+	stifle <- foreach(bin_id=unique(metagenome_annotation_tmp$clean_id)) %do% {
+		subset_metagenome_annotation <- subset(metagenome_annotation_tmp, clean_id==bin_id)
+		
+		writeXStringSet(g_metagenome[subset_metagenome_annotation$contig], paste0(path_output,base_name,".",bin_id,".fasta"))
+
+		return(NA)
+	}
+}
+
 #  ______ _ _ _             ___  ___      _   _  __     
 #  |  ___(_) | |            |  \/  |     | | (_)/ _|    
 #  | |_   _| | |_ ___ _ __  | .  . | ___ | |_ _| |_ ___ 
@@ -2624,7 +2657,7 @@ classify.detected.motifs.bin <- function(methylation_signal, list_contigs, bin_i
 #                                                      __/ |                                           
 #                                                     |___/                                            
 
-score.contig.motif <- function(motif_to_score, discovered_motifs, contig_name, methylation_signal, path_metagenome, window_size, scoring_type="top"){
+score.contig.motif <- function(motif_to_score, discovered_motifs, contig_name, methylation_signal, path_reference, window_size, scoring_type="top", fitting_score=TRUE){
 	expected_signal_left <- -6
 	expected_signal_right <- -1
 	signal_margin <- 4
@@ -2633,7 +2666,7 @@ score.contig.motif <- function(motif_to_score, discovered_motifs, contig_name, m
 	methylation_signal_contig <- subset(methylation_signal, contig==contig_name)
 
 	# Detect misassemblies
-	tagged_motif <- tag.motifs(motif_to_score, discovered_motifs, methylation_signal_contig, path_metagenome, iupac_nc, expected_signal_left, expected_signal_right, signal_margin, min_cov)
+	tagged_motif <- tag.motifs(motif_to_score, discovered_motifs, methylation_signal_contig, path_reference, iupac_nc, expected_signal_left, expected_signal_right, signal_margin, min_cov)
 
 	# Score occurrences
 	if(scoring_type=="top_win"){
@@ -2644,7 +2677,7 @@ score.contig.motif <- function(motif_to_score, discovered_motifs, contig_name, m
 			mutate(cov_wga=mean(N_wga, na.rm=TRUE), cov_nat=mean(N_nat, na.rm=TRUE)) %>%
 			mutate(score=rollapplyr(abs(mean_diff), 6, mean, partial=TRUE, fill=NA, align="center", na.rm=TRUE)) %>%
 			filter(distance %in% seq(min_distance + 2, max_distance - 3)) %>%
-			filter(score==max(score, na.rm=TRUE)) %>%
+			filter(score==suppressWarnings(max(score, na.rm=TRUE))) %>%
 			filter(row_number()==1) # Remove potential/rare ties; Keep first distance only
 	}else if(scoring_type=="top"){
 		scored_motif <- tagged_motif %>%
@@ -2657,23 +2690,25 @@ score.contig.motif <- function(motif_to_score, discovered_motifs, contig_name, m
 			summarize(score=mean(abs(mean_diff), na.rm=TRUE), cov_wga=unique(cov_wga), cov_nat=unique(cov_nat), .groups="drop_last")
 	}
 
-	contig_ranges <- range(scored_motif$pos_motif)
+	if(fitting_score){
+		contig_ranges <- range(scored_motif$pos_motif)
 
-	contig_length <- contig_ranges[2] - (contig_ranges[1] - 1)
-	if(is.na(window_size)){
-		nb_occurrences <- nrow(scored_motif)
-		nb_avg_motifs_per_window <- 100
+		contig_length <- contig_ranges[2] - (contig_ranges[1] - 1)
+		if(is.na(window_size)){
+			nb_occurrences <- nrow(scored_motif)
+			nb_avg_motifs_per_window <- 100
 
-		motif_span <- min(nb_avg_motifs_per_window/nb_occurrences, 0.1) # Fix maximum at 10% contig's occurrences
-	}else{
-		motif_span <- window_size/contig_length
+			motif_span <- min(nb_avg_motifs_per_window/nb_occurrences, 0.1) # Fix maximum at 10% contig's occurrences
+		}else{
+			motif_span <- window_size/contig_length
+		}
+		fit_score <- loess(score ~ pos_motif, data=scored_motif, span=motif_span)
+		scored_motif$fitted_score <- predict(fit_score)
+		fit_cov_wga <- loess(cov_wga ~ pos_motif, data=scored_motif, span=motif_span)
+		scored_motif$fitted_cov_wga <- predict(fit_cov_wga)
+		fit_cov_nat <- loess(cov_nat ~ pos_motif, data=scored_motif, span=motif_span)
+		scored_motif$fitted_cov_nat <- predict(fit_cov_nat)
 	}
-	fit_score <- loess(score ~ pos_motif, data=scored_motif, span=motif_span)
-	scored_motif$fitted_score <- predict(fit_score)
-	fit_cov_wga <- loess(cov_wga ~ pos_motif, data=scored_motif, span=motif_span)
-	scored_motif$fitted_cov_wga <- predict(fit_cov_wga)
-	fit_cov_nat <- loess(cov_nat ~ pos_motif, data=scored_motif, span=motif_span)
-	scored_motif$fitted_cov_nat <- predict(fit_cov_nat)
 
 	return(scored_motif)
 }
