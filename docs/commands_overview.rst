@@ -17,5 +17,6 @@ Commands overview
 * :ref:`filter_profile`: Compute the methylation profile matrix for selected features for a metagenome sample
 * :ref:`binning`: Perform methylation binning, cluster metagenomic contigs according to methylation feature similarities using t-SNE
 * :ref:`plot_binning`: Plot results of methylation binning
+* :ref:`score`: Attribute methylation scores to each motif occurrence
 * :ref:`version`: Plot version
 * :ref:`help`: Print help
