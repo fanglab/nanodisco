@@ -1,13 +1,13 @@
 #!/usr/bin/env Rscript
 
 # Example
-# nanodisco score -r /home/nanodisco/reference/metagenome.fasta -d /home/nanodisco/dataset/EC_difference.RDS -b Ecoli -o analysis/Ecoli_motifs -m GATC,CCWGG,GCACNNNNNNGTT,AACNNNNNNGTGC
+# nanodisco score -r /home/nanodisco/reference/Ecoli_K12_MG1655_ATCC47076.fasta -d /home/nanodisco/dataset/EC_difference.RDS -b Ecoli -o analysis/Ecoli_motifs -m GATC,CCWGG,GCACNNNNNNGTT,AACNNNNNNGTGC
 
 suppressMessages(library(optparse))
 
 # Parsing arguments
 option_list <- list(
-	make_option(c("-p", "--nb_threads"), type="integer", default=1, help="Number of threads to use", metavar="<integer>"),
+	make_option(c("-p", "--nb_threads"), type="integer", default=1, help="Number of threads to use (default is 1)", metavar="<integer>"),
 	make_option(c("-d", "--path_diff_data"), type="character", default=NULL, help="Path to current differences file (*.RDS produced from nanodisco difference)", metavar="<path>"),
 	make_option(c("-r", "--path_reference"), type="character", default=NULL, help="Path to reference metagenome (.fasta)", metavar="<path>"),
 	make_option(c("-b", "--base_name"), type="character", default="results", help="Base name for outputing results (e.g. Ecoli_K12; default is 'results')", metavar="<character>"),
