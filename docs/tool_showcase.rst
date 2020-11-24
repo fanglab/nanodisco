@@ -27,7 +27,7 @@ Methylation typing and fine mapping
 #. Reference genome file (.fasta)
 #. Methylation motifs for which one wants to perform typing and fine mapping
 
-**Outputs:** For each queried methylation motif, ``nanodisco`` identifies the methylation type and the methylated position summarized in a heatmap (``analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.pdf``). See Figure 4d in the preprint as an example.
+**Outputs:** For each queried methylation motif, ``nanodisco`` identifies the methylation type and the methylated position summarized in a heatmap (``analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.pdf``). See Figure 4d in the preprint as an example. In addition, the best predictions are compile in a text file (``analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.tsv``). 
 
 .. figure:: figures/Motifs_classification_Ecoli_nn_model.png
    :width: 600
@@ -64,7 +64,7 @@ Methylation binning of metagenomic contigs
 #. *De novo* discovered methylation motifs (pre-computed in the following example)
 #. (Optional) Annotation for metagenome contigs (e.g. species of origin) and List of contigs from Mobile Genetic Elements (MGEs)
 
-**Outputs:** t-SNE scatter plot that demonstrates the species level clustering of metagenomic contigs (``analysis/binning/Contigs_methylation_tsne_MGM1_motif.pdf``) as presented in Figure 5a in the preprint.
+**Outputs:** t-SNE scatter plot that demonstrates the species level clustering of metagenomic contigs (``analysis/binning/Contigs_methylation_tsne_MGM1_motif.pdf``) as presented in Figure 5a in the preprint. Optionally, binned fasta files can be generated.
 
 .. figure:: figures/Contigs_methylation_tsne_MGM1_motif.png
    :width: 600
