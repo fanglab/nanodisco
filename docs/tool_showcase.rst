@@ -27,7 +27,7 @@ Methylation typing and fine mapping
 #. Reference genome file (.fasta)
 #. Methylation motifs for which one wants to perform typing and fine mapping
 
-**Outputs:** For each queried methylation motif, ``nanodisco`` identifies the methylation type and the methylated position summarized in a heatmap (``analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.pdf``). See Figure 4d in the preprint as an example. In addition, the best predictions are compiled in a text file (``analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.tsv``). 
+**Outputs:** For each queried methylation motif, ``nanodisco`` identifies the methylation type and the methylated position summarized in a heatmap (``analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.pdf``). See Figure 4d in the preprint as an example. In addition, the predicted methylation type and methylated position for each motif is compiled in a text file (``analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.tsv``). 
 
 .. figure:: figures/Motifs_classification_Ecoli_nn_model.png
    :width: 600
