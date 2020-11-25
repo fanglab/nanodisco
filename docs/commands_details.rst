@@ -497,7 +497,7 @@ Attribute methylation scores to each motif occurrence.
 
 **Output:**
 
-* Methylation score for each occurrence of the supplied motif(s) in a text file (``Motifs_scores_<base_name>.tsv``).
+* Methylation score for each occurrence of the supplied motif(s) in a text file (``Motifs_occurrences_scores_<base_name>.tsv``).
 
 .. _version:
 
