@@ -19,6 +19,7 @@ load.libraries.metagenome <- function(){
 	library(tidyr)
 	library(Rtsne)
 	library(progress)
+	library(dbscan)
 }
 
 load.libraries.score <- function(){
@@ -319,7 +320,7 @@ check.input.plot.binning <- function(opt){
 	if(!dir.exists(opt$path_output)){
 		dir.create(opt$path_output, recursive=TRUE)
 	}
-	# Check if methylation profile file exist.
+	# Check if methylation profile annotation file exist.
 	if(!is.null(opt$path_annotation)){
 		if(!file.exists(opt$path_annotation)){
 			cat(paste0("Contig annotation file doesn't exist (",opt$path_annotation,").\n"))
@@ -357,6 +358,47 @@ check.input.plot.binning <- function(opt){
 				cat("Please check -a/--path_annotation parameter. We expect two columns .txt or .RDS file with contig_name<tab>custom_name).\n")
 				quit(save="no", status=4)
 			}
+		}
+	}
+	# Check if fasta binning parameters are complete
+	if(opt$split_fasta=="no"){
+		opt$split_fasta <- FALSE
+		opt$param_dbscan[["set_eps"]] <- NA
+		opt$param_dbscan[["set_minPts"]] <- NA
+	}else if(opt$split_fasta=="yes"){
+		if(!is.null(opt$path_annotation)){
+			opt$split_fasta <- TRUE
+			opt$param_dbscan[["set_eps"]] <- NA
+			opt$param_dbscan[["set_minPts"]] <- NA
+		}else{
+			cat(paste0("Contig annotation file is missing.\n"))
+			cat("Please check -a/--path_annotation parameter. We expect two columns .txt or .RDS file with contig_name<tab>custom_name).\n")
+			quit(save="no", status=4)
+		}
+	}else if(opt$split_fasta=="default"){
+		opt$split_fasta <- TRUE
+		opt$param_dbscan[["set_eps"]] <- 5
+		opt$param_dbscan[["set_minPts"]] <- 3
+	}else{
+		param_dbscan_tmp <- str_split(opt$split_fasta, ",", simplify=TRUE)
+		not_conform <- FALSE
+		if(ncol(param_dbscan_tmp)!=2){
+			not_conform <- TRUE
+		}else{
+			opt$split_fasta <- TRUE
+			opt$param_dbscan[["set_eps"]] <- strtoi(param_dbscan_tmp[,1])
+			opt$param_dbscan[["set_minPts"]] <- strtoi(param_dbscan_tmp[,2])
+
+			if(is.na(opt$param_dbscan[["set_eps"]]) || is.na(opt$param_dbscan[["set_minPts"]])){
+				not_conform <- TRUE
+			}else if(opt$param_dbscan[["set_eps"]] <= 0 || opt$param_dbscan[["set_minPts"]] <= 0){
+				not_conform <- TRUE
+			}
+		}
+		if(not_conform){
+			cat("Please check --split_fasta parameter. We expect either yes/default/<eps,minPts> (eps & minPts can be two integer for dbscan clsuter detection).\n")
+			cat("Parameters eps & minPts should be two comma separated integers for dbscan's cluster detection (default is 5,3).\n")
+			quit(save="no", status=4)
 		}
 	}
 	# Check if some MGEs contigs should be highlighted.
@@ -1720,8 +1762,8 @@ plot.tsne.motifs.score.custom <- function(tsne_data, base_name, list_MGEs=NA, li
 	}
 }
 
-find.tsne.clusters <- function(tsne_binning_de_novo){
-	db <- dbscan(subset(tsne_binning_de_novo, select=c(tSNE_1,tSNE_2)), eps=5, minPts=3)
+find.tsne.clusters <- function(tsne_binning_de_novo, set_eps=5, set_minPts=3){
+	db <- dbscan(subset(tsne_binning_de_novo, select=c(tSNE_1,tSNE_2)), set_eps, set_minPts)
 	tsne_binning_de_novo$db_clust <- db$cluster
 	tsne_binning_de_novo$id <- paste0("dbscan Bin ", db$cluster)
 

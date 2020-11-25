@@ -17,7 +17,7 @@ option_list <- list(
 	make_option(c("--xlim"), type="character", default=NULL, help="Optional x-axis zooming (e.g. -5:10)", metavar="<x1:x2>"),
 	make_option(c("--ylim"), type="character", default=NULL, help="Optional y-axis zooming (e.g. -10:9)", metavar="<y1:y2>"),
 	make_option(c("--min_contig_len"), type="integer", default=25000, help="Minimum length for plotting contigs (default is 25000 bp)", metavar="<integer>"),
-	make_option(c("--split_fasta"), default=FALSE, action="store_true", help="Split reference metagenome into binned fasta (needs annotation)", metavar=">")
+	make_option(c("--split_fasta"), type="character", default="no", help="Split reference metagenome into binned fasta (needs annotation)", metavar=">")
 )
 
 default_usage <- c("nanodisco plot_binning -r <path_fasta> --mb <path_methylation_binning> -b <analysis_name> -o <path_output> [+ advanced parameters]")
@@ -42,6 +42,7 @@ new_xlim <- str_split(opt$xlim, ":", simplify=TRUE)[1,] # NA by default
 new_ylim <- str_split(opt$ylim, ":", simplify=TRUE)[1,] # NA by default
 min_contig_len <- opt$min_contig_len
 split_fasta <- opt$split_fasta
+param_dbscan <- opt$param_dbscan
 
 print_message("Prepare default metagenome annotation")
 
@@ -54,9 +55,16 @@ methylation_binning <- readRDS(path_methylation_binning)
 
 # Load additional annotation (optional)
 if(is.null(path_annotation)){
-	# No annotation provided
-	binning_annotation <- metagenome_annotation
-	binning_annotation$id <- as.factor("No annotation")
+	if(split_fasta){
+		print_message("Detection of potential bins")
+
+		methylation_binning_annotated <- find.tsne.clusters(methylation_binning, param_dbscan[["set_eps"]], param_dbscan[["set_minPts"]])
+		binning_annotation <- data.frame(contig=methylation_binning_annotated$contig, id=methylation_binning_annotated$id)
+	}else{
+		# No annotation provided
+		binning_annotation <- metagenome_annotation
+		binning_annotation$id <- as.factor("No annotation")
+	}
 }else{
 	print_message("Load additional annotation")
 
@@ -75,9 +83,9 @@ print_message("Plot binning")
 # Plot binning
 gp_motif_binning <- plot.tsne.motifs.score(methylation_binning, binning_annotation, base_name, motif_binning_legend, list_MGE_contig, new_xlim, new_ylim, min_contig_len, path_output)
 
-print_message("Generate binned fasta files")
+if(split_fasta){
+	print_message("Generate binned fasta files")
 
-if(!is.null(path_annotation) & split_fasta){
 	write.binned.fasta(metagenome, metagenome_annotation, binning_annotation, base_name, path_output)
 }
 
