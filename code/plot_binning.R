@@ -17,7 +17,7 @@ option_list <- list(
 	make_option(c("--xlim"), type="character", default=NULL, help="Optional x-axis zooming (e.g. -5:10)", metavar="<x1:x2>"),
 	make_option(c("--ylim"), type="character", default=NULL, help="Optional y-axis zooming (e.g. -10:9)", metavar="<y1:y2>"),
 	make_option(c("--min_contig_len"), type="integer", default=25000, help="Minimum length for plotting contigs (default is 25000 bp)", metavar="<integer>"),
-	make_option(c("--split_fasta"), type="character", default="no", help="Split reference metagenome into binned fasta (needs annotation)", metavar=">")
+	make_option(c("--split_fasta"), type="character", default="no", help="Split reference metagenome into binned fasta ('yes' split from annotation, 'default'|'<integer,integer>' split from dbscan cluster analysis", metavar="<no|yes|default|integer,integer>")
 )
 
 default_usage <- c("nanodisco plot_binning -r <path_fasta> --mb <path_methylation_binning> -b <analysis_name> -o <path_output> [+ advanced parameters]")
