@@ -40,6 +40,7 @@ Contents
    commands_details
    data_requirement
    analyze_dataset
+   system_resources_uasge
    faq
    citation
 
