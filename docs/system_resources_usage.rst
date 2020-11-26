@@ -52,6 +52,6 @@ Microbiome, average size of 94 Mb (for methylation binning)
 * A typical runtime for the profiling of 3769 methylation features in a 90 Mb metagenome is ~25 min with 20 threads (>240 GB of memory used).
 * Runtime generally depends on the diversity of methylation motifs in the microbiome and the metagenome size.
 
-.. admonition:: Nota bene
+.. admonition:: Note
 
 All tests were performed on an Intel(R) Xeon(R) Platinum 8168 CPU @ 2.70GHz.
