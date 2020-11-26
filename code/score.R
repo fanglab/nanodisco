@@ -7,7 +7,7 @@ suppressMessages(library(optparse))
 
 # Parsing arguments
 option_list <- list(
-	make_option(c("-p", "--nb_threads"), type="integer", default=1, help="Number of threads to use (default is 1)", metavar="<integer>"),
+	make_option(c("-p", "--nb_threads"), type="integer", default=1, help="Number of threads to use", metavar="<integer>"),
 	make_option(c("-d", "--path_diff_data"), type="character", default=NULL, help="Path to current differences file (*.RDS produced from nanodisco difference)", metavar="<path>"),
 	make_option(c("-r", "--path_reference"), type="character", default=NULL, help="Path to reference metagenome (.fasta)", metavar="<path>"),
 	make_option(c("-b", "--base_name"), type="character", default="results", help="Base name for outputing results (e.g. Ecoli_K12; default is 'results')", metavar="<character>"),
@@ -138,7 +138,7 @@ scored_motif$score <- round(scored_motif$score, 4)
 
 print_message("Writing results")
 
-file_name <- paste0("Motifs_scores_",base_name,".tsv")
+file_name <- paste0("Motifs_occurrences_scores_",base_name,".tsv")
 output_file_name <- paste0(path_output,file_name)
 
 write.table(scored_motif, output_file_name, quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
