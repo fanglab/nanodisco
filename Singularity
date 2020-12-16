@@ -38,6 +38,10 @@ For more information, please consult https://github.com/fanglab/nanodisco
     "openssh-server" \
     && rm -rf /var/lib/apt/lists/*
 
+    apt-get update && apt-get install -y --no-install-recommends \    
+    "libgit2-dev" \
+    && rm -rf /var/lib/apt/lists/*
+
     # Include nanodisco toolbox
     mkdir /home/nanodisco
     mv /tmp/code /home/nanodisco/code
