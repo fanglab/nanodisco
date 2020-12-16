@@ -29,6 +29,11 @@ RUN apt-get update \
       "openssh-server" \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    "libgit2-dev" \
+    && rm -rf /var/lib/apt/lists/*
+
 # Include nanodisco toolbox
 RUN mkdir /home/nanodisco
 COPY code /home/nanodisco/code
