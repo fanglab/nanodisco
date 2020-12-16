@@ -46,7 +46,7 @@ The image retrieved from [Singularity Hub] with `singularity pull` (nanodisco.si
 2. Reference genome file (.fasta)
 3. Methylation motifs for which one wants to perform typing and fine mapping
 
-**Outputs:** For each queried methylation motif, `nanodisco` identifies the methylation type and the methylated position summarized in a heatmap (`analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.pdf`). See Figure 4d in the preprint as an example.
+**Outputs:** For each queried methylation motif, `nanodisco` identifies the methylation type and the methylated position summarized in a heatmap (`analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.pdf`). See Figure 4d in the preprint as an example. In addition, the predicted methylation type and methylated position for each motif is compiled in a text file (`analysis/Ecoli_motifs/Motifs_classification_Ecoli_nn_model.tsv`).
 
 ![Output Characterize](/docs/figures/Motifs_classification_Ecoli_nn_model.png "E. coli methylation motifs classification results")
 <sub>*1. AACNNNNNNGTGC: highest value (85) is on the 6mA row with offset +1 (relative to the first base), meaning that the second base (A) is 6mA*</sub><br />

@@ -3913,6 +3913,37 @@ draw.classification.results <- function(classification_results, base_name, path_
 	dev.off()
 }
 
+write.best.classification.results <- function(classification_results, base_name, path_output){
+	best_prediction <- classification_results %>%
+		group_by(motif) %>%
+		mutate(is_within=ifelse(mod_pos >= 0 & mod_pos <= nchar(motif) - 1,TRUE,FALSE)) %>%
+		mutate(replacing=str_split(mod_type,"",simplify=TRUE)[,3]) %>%
+		filter(mod_pos>=0 & mod_pos<=3) %>%
+		rowwise() %>%
+		mutate(safe_mod_pos=ifelse(is_within, mod_pos+2, 1)) %>%
+		mutate(safe_base=cbind("Z",str_split(motif,"",simplify=TRUE))[,safe_mod_pos]) %>%
+		mutate(is_consistent=ifelse(is_within & replacing==safe_base,TRUE,FALSE)) %>%
+		ungroup() %>%
+		filter(is_consistent) %>%
+		# filter(score>20)
+		group_by(motif) %>%
+		filter(score==max(score)) %>%
+		mutate(clean_motif=paste0(substr(motif, 1,mod_pos),mod_type,substr(motif, mod_pos+2,nchar(motif)))) %>%
+		mutate(clear_mod_pos=mod_pos+1) %>%
+		mutate(clear_score=round(score, 2)) %>%
+		dplyr::select(clean_motif, motif, clear_mod_pos, mod_type, clear_score)
+	colnames(best_prediction) <- c("Characterized_motif","Motif","Predicted_position","Predicted_type","Prediction_score")
+
+	file_name <- paste0("Motifs_classification_",base_name,".tsv")
+	output_file_name <- paste0(path_output,file_name)
+
+	# con <- file(output_file_name, open="wt")
+	# writeLines(paste("# This only shows the prediction with highest scores."), con)
+	# writeLines(paste("# Please consult the associated .pdf for the full prediction results."), con)
+	write.table(best_prediction, output_file_name, quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+	# close(con)
+}
+
 ######################
 ## Visualization IGV
 ######################

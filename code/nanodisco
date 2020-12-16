@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nanodisco_version="v1.0.1"
+nanodisco_version="v1.0.2_dev"
 
 ###
 # Wrapper for nanodisco subtasks
@@ -18,6 +18,7 @@ nanodisco_version="v1.0.1"
 # filter_profile: Compute the methylation profile matrix for selected features for a metagenome sample
 # binning: Perform methylation binning, cluster metagenomic contigs according to methylation feature similarities using t-SNE
 # plot_binning: Plot results of methylation binning
+# score: Attribute methylation scores to each motif occurrence
 # help: Print help
 # version: Print version
 
@@ -35,6 +36,7 @@ select_feature_def="Select informative feature from a methylation profile matrix
 filter_profile_def="Compute the methylation profile matrix for selected features for a metagenome sample."
 binning_def="Perform methylation binning, cluster metagenomic contigs according to methylation feature similarities using t-SNE."
 plot_binning_def="Plot results of methylation binning."
+score_def="Attribute methylation scores to each motif occurrence."
 
 # Handle missing parameters
 if [[ "$#" -eq 0 ]]; then
@@ -96,6 +98,10 @@ case $subtask in
     cmd="/home/nanodisco/code/plot_binning.R"
     shift # pass subtask
     ;;
+  score)
+    cmd="/home/nanodisco/code/score.R"
+    shift # pass subtask
+    ;;
   -h|help) # Print help
     echo "Usage: nanodisco <subtasks> [parameters]" >&2
     echo "    subtasks:" >&2
@@ -112,6 +118,7 @@ case $subtask in
     echo "      - filter_profile: $filter_profile_def" >&2
     echo "      - binning: $binning_def" >&2
     echo "      - plot_binning: $plot_binning_def" >&2
+    echo "      - score: $score_def" >&2
     echo "      - help: Show this message." >&2
     echo "      - version: Show the image version." >&2
     echo -e "\nAdditional information can be found in our GitHub repository." >&2

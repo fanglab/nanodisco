@@ -19,6 +19,7 @@ Commands details
 * `filter_profile`_: Compute the methylation profile matrix for selected features for a metagenome sample
 * `binning`_: Perform methylation binning, cluster metagenomic contigs according to methylation feature similarities using t-SNE
 * `plot_binning`_: Plot results of methylation binning
+* `score`_: Attribute methylation scores to each motif occurrence
 * `version`_: Print version
 * `help`_: Print help
 
@@ -136,7 +137,7 @@ Combine nanopore signal difference for all processed chunks in directory.
 
 .. code-block:: none
 
-   nanodisco merge -d <path_difference> -o <path_output> -b <name_output>
+   nanodisco merge -d <path_difference> -o <path_output> -b <base_name>
      -d : Path to current differences directory (*.rds produced from nanodisco difference).
      -o : Path to output directory. Default is current directory.
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
@@ -144,7 +145,7 @@ Combine nanopore signal difference for all processed chunks in directory.
 
 **Output:**
 
-* Current difference file (``<path_output>/<name_output>_difference.RDS``; same format as ``nanodisco difference`` output)
+* Current difference file (``<path_output>/<base_name>_difference.RDS``; same format as ``nanodisco difference`` output)
 
 .. _motif:
 
@@ -157,7 +158,7 @@ motif
 
 .. code-block:: none
 
-   nanodisco motif -p <nb_threads> -b <name_output> -d <path_difference> -o <path_output> -r <path_genome> [+ advanced parameters]
+   nanodisco motif -p <nb_threads> -b <base_name> -d <path_difference> -o <path_output> -r <path_genome> [+ advanced parameters]
      -p : Number of threads to use.
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
      -d : Path to current differences file (*.RDS produced from nanodisco difference).
@@ -197,7 +198,7 @@ Generate refine plot for candidate methylation motifs.
 
 .. code-block:: none
 
-   nanodisco refine -p <nb_threads> -b <name_output> -d <path_difference> -o <path_output> -m <motif_1,motif_2> -M <motif_3,motif_4|all> -r <path_genome>
+   nanodisco refine -p <nb_threads> -b <base_name> -d <path_difference> -o <path_output> -m <motif_1,motif_2> -M <motif_3,motif_4|all> -r <path_genome>
      -p : Number of threads to use.
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
      -d : Path to current differences file (*.RDS produced from nanodisco difference).
@@ -222,7 +223,7 @@ Predict the methylation type and fine map the modification within *de novo* disc
 
 .. code-block:: none
 
-   nanodisco characterize -p <nb_threads> -b <name_output> -d <path_difference> -o <path_output> -m <motif1,motif2,...> -t <models> -r <path_genome>
+   nanodisco characterize -p <nb_threads> -b <base_name> -d <path_difference> -o <path_output> -m <motif1,motif2,...> -t <models> -r <path_genome>
      -p : Number of threads to use.
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
      -d : Path to current differences file (*.RDS produced from nanodisco difference).
@@ -236,7 +237,8 @@ Predict the methylation type and fine map the modification within *de novo* disc
 
 **Output:**
 
-* Identified methylation type and methylated position summarized in a heatmap (``Motifs_classification_Ecoli_<model_name>_model.pdf``) as presented in the preprint Figure 4d.
+* Identified methylation type and methylated position summarized in a heatmap (``Motifs_classification_<base_name>_<model_name>_model.pdf``) as presented in the preprint Figure 4d.
+* Best predictions compiled in a text file (``Motifs_classification_<base_name>_<model_name>_model.tsv``)
 * Figure representing the data used to define the motif signature center as presented in the preprint Supplementary Figure 5a.
 
 .. _coverage:
@@ -270,7 +272,7 @@ Compute the methylation profile matrix for a metagenome sample (methylation feat
 
 .. code-block:: none
 
-   nanodisco profile -p <nb_threads> -r <path_fasta> -d <path_difference> -w <path_WGA_cov> -n <path_NAT_cov> -b <analysis_name> -o <path_output> (-a || -m <motif1,motif2,...> || --motifs_file <path_motif>) [+ advanced parameters]
+   nanodisco profile -p <nb_threads> -r <path_fasta> -d <path_difference> -w <path_WGA_cov> -n <path_NAT_cov> -b <base_name> -o <path_output> (-a || -m <motif1,motif2,...> || --motifs_file <path_motif>) [+ advanced parameters]
      -p : Number of threads to use.
      -r : Path to reference metagenome (.fasta).
      -d : Path to current differences file (*.RDS produced from nanodisco difference).
@@ -324,7 +326,7 @@ Select informative feature from a methylation profile matrix.
 
 .. code-block:: none
 
-   nanodisco select_feature -p <nb_threads> -r <path_fasta> -s <path_profile> -b <analysis_name> -o <path_output> [+ advanced parameters]
+   nanodisco select_feature -p <nb_threads> -r <path_fasta> -s <path_profile> -b <base_name> -o <path_output> [+ advanced parameters]
      -p : Number of threads to use.
      -r : Path to reference metagenome (.fasta).
      -s : Path to methylation profile file (*.RDS produced from nanodisco profile).
@@ -364,7 +366,7 @@ Compute the methylation profile matrix for selected features for a metagenome sa
 
 .. code-block:: none
 
-   nanodisco filter_profile -p <nb_threads> -r <path_fasta> -d <path_difference> -f <path_feature> -b <analysis_name> -o <path_output> [+ advanced parameters]
+   nanodisco filter_profile -p <nb_threads> -r <path_fasta> -d <path_difference> -f <path_feature> -b <base_name> -o <path_output> [+ advanced parameters]
      -p : Number of threads to use.
      -r : Path to reference metagenome (.fasta).
      -d : Path to current differences file (*.RDS produced from nanodisco difference).
@@ -405,7 +407,7 @@ Perform methylation binning, cluster metagenomic contigs according to methylatio
 
 .. code-block:: none
 
-   nanodisco binning -r <path_fasta> -s <path_profile> -b <analysis_name> -o <path_output> [+ advanced parameters]
+   nanodisco binning -r <path_fasta> -s <path_profile> -b <base_name> -o <path_output> [+ advanced parameters]
      -r : Path to reference metagenome (.fasta).
      -s : Path to methylation profile file (*.RDS produced from nanodisco profile).
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
@@ -448,7 +450,7 @@ Plot results of methylation binning.
 
 .. code-block:: none
 
-   nanodisco plot_binning -r <path_fasta> -u <path_methylation_binning> -b <analysis_name> -o <path_output> [+ advanced parameters]
+   nanodisco plot_binning -r <path_fasta> -u <path_methylation_binning> -b <base_name> -o <path_output> [+ advanced parameters]
      -r : Path to reference metagenome (.fasta).
      -u : Path to methylation binning file (*.RDS produced from nanodisco binning).
      -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
@@ -465,10 +467,37 @@ Advanced parameters. We recommend leaving them set to default values:
      --xlim            : Optional x-axis zooming (e.g. -5:10).
      --ylim            : Optional y-axis zooming (e.g. -10:9).
      --min_contig_len  : Minimum length for plotting contigs. Default is 25000 bp.
+     --split_fasta     : Split reference metagenome into binned fasta ('yes' from annotation, 'default'|'<int,int>' from dbscan cluster analysis. Default is 'no'.
 
 **Output:**
 
 * Methylation binning figure (``Contigs_methylation_tsne_<base_name>.pdf``) similar to Figure 5a-b in the preprint
+
+.. _score:
+
+score
+=====
+
+Attribute methylation scores to each motif occurrence.
+
+**Usage:**
+
+.. code-block:: none
+
+   nanodisco score -p <nb_threads> -b <base_name> -d <path_difference> -o <path_output> -m <motif1,motif2,...> -r <path_fasta>
+     -p : Number of threads to use. Default is 1.
+     -b : Base name for outputting results (e.g. Ecoli_K12). Default is 'results'.
+     -d : Path to current differences file (*.RDS produced from nanodisco difference).
+     -o : Path to output directory. Default is current directory.
+     -m : Comma separated list of motifs following IUPAC nucleotide code (e.g. GATC,CCWGG).
+     -r : Path to a reference genome (i.e. fasta).
+     -c : (Optional) Comma separated list of contigs (e.g. contig_1,contig_3).
+     --contigs_file : (Optional) Path to file with list of contigs (one per line).
+     -h : Print help.
+
+**Output:**
+
+* Methylation score for each occurrence of the supplied motif(s) in a text file (``Motifs_occurrences_scores_<base_name>.tsv``).
 
 .. _version:
 
