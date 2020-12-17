@@ -58,6 +58,15 @@ cp samtools /usr/bin/samtools
 
 cd ..
 
+git clone --depth=1 -b v1.0.0 https://github.com/libgit2/libgit2.git /libgit2_src \
+    && cd /libgit2_src \
+    && cmake . -DBUILD_CLAR=OFF -DCMAKE_BUILD_TYPE=Release -DEMBED_SSH_PATH=/libssh2_src -DCMAKE_INSTALL_PREFIX=/libgit2 \
+    && cmake --build . --target install \
+    && cp -r /libgit2/* /usr/bin \
+    && cp -r /libgit2/* /usr/local
+
+cd ..
+
 # Prepare for installing R packages
 echo "options(repos ='https://cran.rstudio.com/', \
   unzip = 'internal', \
