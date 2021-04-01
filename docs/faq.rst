@@ -66,5 +66,5 @@ FAQ
 
 .. _q_hpc:
 
-* Q13: How to best use HPC infrastructure?
+* Q13: How to best use an HPC infrastructure?
      For users with access to an HPC infrastructure, we recommend to use the job scheduler instead of relying on the built-in parallel approach. A loop can be used to generate all chunk start/end combinations (e.g. 1 to 5, then 6 to 10, etc.) for which a single job can be spawned by updating `-f` and `-l` (e.g. `-nj 1 -p 5 -nc 5 -f 1 -l 5`). This would makes resource management easier, and allows for a better use of available HPC computing power.
