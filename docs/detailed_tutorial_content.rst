@@ -79,7 +79,7 @@ Current differences are computed by first mapping nanopore sequencing events (pl
 
    nanodisco difference -nj 2 -nc 1 -p 2 -f 281 -l 290 -i analysis/preprocessed_subset -o analysis/difference_subset -w EC_WGA -n EC_NAT -r reference/Ecoli_K12_MG1655_ATCC47076.fasta
 
-Parameters ``-nj`` number of jobs in parallel, ``-nc`` number of chunks to process in a row, ``-p`` number of threads per jobs, ``-f`` first chunk and ``-l`` last to process, ``-i`` path to input directory (used as output in ``nanodisco preprocess``), ``-o`` path to output directory, ``-w`` name of WGA sample and ``-n`` native sample (used in ``nanodisco preprocess``), and ``-r`` path to reference genome. See details and advanced parameters in :ref:`difference` section. See how genomic chunks are defined in `Genomic chunks information`_ section. **Runtime is ~16 min with 4 threads** (2 jobs with 2 threads each).
+Parameters ``-nj`` number of jobs in parallel, ``-nc`` number of chunks to process in a row, ``-p`` number of threads per jobs, ``-f`` first chunk and ``-l`` last chunk to process, ``-i`` path to input directory (used as output in ``nanodisco preprocess``), ``-o`` path to output directory, ``-w`` name of WGA sample and ``-n`` native sample (used in ``nanodisco preprocess``), and ``-r`` path to reference genome. See details and advanced parameters in :ref:`difference` section. See how genomic chunks are defined in `Genomic chunks information`_ section. Recommendation for users with HPC access can be found in the :ref:`FAQ<faq>`. **Runtime is ~16 min with 4 threads** (2 jobs with 2 threads each).
 
 Output file description (chunk.*.difference.rds):
 
