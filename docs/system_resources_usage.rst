@@ -14,7 +14,7 @@ Generating current differences
 
 * A typical runtime is ~16 min with 4 threads (2 jobs with 2 threads each) for 10 chunks at sequencing depth of ~85x (~10 GB memory used).
 * The computation of current differences can be optimized by using ``-nj`` to use maximum available computing resources.
-* HPC infrastructure can also be leverage by starting jobs on multiple nodes using ``-f`` and ``-l`` to specify unique chunk ranges. Recommendation for users with HPC access can be found in the `FAQ<https://nanodisco.readthedocs.io/en/latest/faq.html#q-hpc>`.
+* HPC infrastructure can also be leverage by starting jobs on multiple nodes using ``-f`` and ``-l`` to specify unique chunk ranges. Recommendation for users with HPC access can be found in the `FAQ<https://nanodisco.readthedocs.io/en/latest/faq.html#q-hpc>`_.
 
 Individual bacteria, 4.5 Mb (or a metagenomic bin)
 ==================================================
