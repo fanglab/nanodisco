@@ -98,4 +98,4 @@ Tourancheau, A., Mead, E.A., Zhang, XS. & Fang, G. Discovering multiple types of
 [Singularity Hub]: https://singularity-hub.org/
 [Singularity Quick Start]: https://sylabs.io/guides/3.5/user-guide/quick_start.html
 [Full Documentation]: https://nanodisco.readthedocs.io/en/latest/overview.html
-[DOI]: https://doi.org/10.1101/2020.02.18.954636
+[DOI]: https://doi.org/10.1038/s41592-021-01109-3
