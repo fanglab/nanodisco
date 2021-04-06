@@ -9,7 +9,7 @@
 ## Authors' notes
 We are actively developing `nanodisco` to facilitate usage and broaden features. All feedback is more than welcome. You can reach us on twitter ([@iamfanggang](https://twitter.com/iamfanggang) and [@AlanTourancheau](https://twitter.com/AlanTourancheau)) or directly through the [GitHub issues system](https://github.com/fanglab/nanodisco/issues).
 
-09/14/20: Update to `v1.0.1`, including the new `nanodisco refine` command and the `--basecall_version` option to select the exact basecalled reads for preprocessing.
+02/13/21: Updated to `v1.0.2`, including a new `nanodisco score` command and the `--split_fasta` option to generate binned fasta files.
 
 ## Content
 + [Installation](#Installation)
@@ -91,7 +91,8 @@ For a comprehensive description of `nanodisco` including installation guide, and
 
 ## Citation
 
-Tourancheau, A., Mead, E.A., Zhang, X.-s. & Fang, G. Discovering and exploiting multiple types of DNA methylation from individual bacteria and microbiome using nanopore sequencing. *bioRxiv* (2020). doi:[10.1101/2020.02.18.954636][DOI]
+Tourancheau, A., Mead, E.A., Zhang, XS. & Fang, G. Discovering multiple types of DNA methylation from bacteria and microbiome using nanopore sequencing. *Nat Methods* (2021). doi:[10.1038/s41592-021-01109-3][DOI]
+
 
 [Singularity]: https://sylabs.io/singularity/
 [Singularity Hub]: https://singularity-hub.org/
