@@ -33,7 +33,7 @@ opt <- parse_args(opt_parser)
 
 # Load parameters and functions
 path_script <- "/home/nanodisco/code/"
-source(paste0(path_script,"difference_functions.R"))
+source(paste0(path_script,"difference_functions.R"), keep.source=TRUE)
 suppressMessages(load.libraries())
 
 setDTthreads(threads=opt$nb_threads)
@@ -120,14 +120,14 @@ final_stat_data <- foreach(idx_chunk=list_chunks, .combine=rbind) %:% when(handl
 	corrected_data <- correct.data(corr_type, path_output, idx_chunk, sample_name_wga, sample_name_nat, genome, chunk_size, path_script, nb_threads, sig_norm, map_type)
 	gc()
 
-	if(!is.null(corrected_data)){ # If still data for chunk idx_chunk
+	if(!is.null(corrected_data) | !is.null(nrow(prev_corrected_data))){ # If still data for chunk idx_chunk
 		# Read filtering
-		if(min_read_length>0){
+		if(min_read_length>0 & !is.null(corrected_data)){
 			corrected_data <- filter.mapped.reads(corrected_data, min_read_length)
 		}
 
 		# Normalization
-		if(normalized>0){
+		if(normalized>0 & !is.null(corrected_data)){
 			corrected_data <- normalize.data(corrected_data, "event_level_mean", idx_chunk, nb_threads, t_model, normalized) # Reduce memory footprint by diminishing nb_threads; nb_threads-3
 		}else{ # Add norm_mean column with nanopolish means without normalization
 			corrected_data$norm_mean <- corrected_data$event_level_mean 

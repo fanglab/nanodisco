@@ -528,7 +528,8 @@ prepare.index <- function(sample_name, path_input, path_output, genome, chunk_si
 	# Remove unmapped read, not necessary?
 	chunks_fast5_info <- subset(chunks_fast5_info, strand %in% c("+","-"))
 	chunks_fast5_info <- droplevels(chunks_fast5_info)
-	chunks_fast5_info$strand <- mapvalues(chunks_fast5_info$strand, from=c("+","-"), to=c("fwd","rev"))
+	idx_strand_avail <- match(levels(chunks_fast5_info$strand), c("+","-"))
+	chunks_fast5_info$strand <- mapvalues(chunks_fast5_info$strand, from=c("+","-")[idx_strand_avail], to=c("fwd","rev")[idx_strand_avail])
 
 	# Create index from read name to fast5 file
 	print(paste0("  Link fast5 to fasta for ",sample_name,"."))
@@ -1046,7 +1047,7 @@ compute.statistic <- function(corrected_data, idx_chunk, chunk_size, sample_name
 		if(is.null(chunk_stat_data)){ # When parallel processing failed
 			tryCatch({ # Can still exceed memory
 					gc()
-					chunk_stat_data <- ddply(chunk_corrected_data, .(position,dir), scoring.position, inSilico=inSilico, inSilico_model=inSilico_model, min_coverage=min_coverage, .parallel=FALSE)
+					chunk_stat_data <- ddply(chunk_corrected_data, .(position, dir), scoring.position, inSilico=inSilico, inSilico_model=inSilico_model, min_coverage=min_coverage, .parallel=FALSE)
 				}, error = function(e) {
 					print(paste0("  Failed scoring chunk #",idx_chunk," (e)."))
 					print(e)
