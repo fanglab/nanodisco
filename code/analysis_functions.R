@@ -388,7 +388,7 @@ save.stat.chunks <- function(data_path, name_file, is_inSilico=FALSE){
 save.merged.stat.chunks <- function(data_path, path_file){
 	if(dir.exists(data_path)){
 		stat_data <- merge.stat.chunks(data_path)
-		saveRDS(stat_data, file=path_file)
+		saveRDS(stat_data, file=path_file, compress="bzip2")
 
 		return(stat_data)
 	}else{
