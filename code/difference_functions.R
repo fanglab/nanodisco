@@ -673,10 +673,12 @@ correct.event.data <- function(path_output, idx_chunk, sample_name, genome, chun
 	# Load corrected events
 	path_fwd <- gsub(".fasta",".fwd.eventalign",path_fasta)
 	realign_fwd <- fread(path_fwd, header=T, sep="\t", stringsAsFactors=TRUE, showProgress=FALSE) #showProgress=FALSE
+	realign_fwd$contig <- as.factor(realign_fwd$contig)
 
 	path_rev <- gsub(".fasta",".rev.eventalign",path_fasta)
 	realign_rev <- fread(path_rev, header=T, sep="\t", stringsAsFactors=TRUE, showProgress=FALSE) #showProgress=FALSE
-
+	realign_rev$contig <- as.factor(realign_rev$contig)
+	
 	# Discard unconcordant mapped contigs; Can happenned with multi-mapped reads
 	realign_fwd <- subset(realign_fwd, contig==chunk_contig_name)
 	realign_rev <- subset(realign_rev, contig==chunk_contig_name)
