@@ -140,6 +140,9 @@ if [[ -z "$@" ]]; then
   # Display help for requested subtask
   $cmd -h
 else
+  # Unset common global variable
+  unset R_LIBS R_HOME
+
   # Execute subtask
   $cmd "$@"
 fi
