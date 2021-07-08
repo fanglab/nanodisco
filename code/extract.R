@@ -7,21 +7,28 @@ load.libraries.extract <- function(){
 	library("rhdf5")
 	library("foreach")
 	library("doMC")
+	# library("doFuture")
 	library("optparse")
+	# library("progressr")
 	library("progress")
 	library("Biostrings")
 	library("stringr")
 }
 
-extract.basecall.version <- function(path_first_fast5, path_basecalling){
+extract.basecall.version <- function(path_first_fast5, path_basecalling, path_first_read=NA){
 	f5_data <- h5readAttributes(path_first_fast5, path_basecalling) # Extract read data (fastq, move, and trace)
 	
 	if(length(f5_data)==0){
 		# This is likely a live base called read with MinKNOW
 		f5_data <- h5readAttributes(path_first_fast5, "/UniqueGlobalKey/tracking_id") # Extract read data (fastq, move, and trace)
 
-		basecaller <- "Guppy_live"
-		bc_version <- f5_data$guppy_version
+		if(is.null(f5_data$guppy_version)){
+			basecaller <- "Unknown"
+			bc_version <- "0.0.0"
+		}else{
+			basecaller <- "Guppy_live"
+			bc_version <- f5_data$guppy_version
+		}
 	}else{
 		# This is likely an "offline" base calling
 		if(grepl("Albacore",f5_data$name)){
@@ -30,13 +37,22 @@ extract.basecall.version <- function(path_first_fast5, path_basecalling){
 		}else if(grepl("Guppy",f5_data$name)){
 			basecaller <- "Guppy"
 			bc_version <- f5_data$version
+		}else if(grepl("MinKNOW-Live-Basecalling",f5_data$name)){
+			if(is.na(path_first_read)){ # If not multi-read fast5
+				f5_data <- h5readAttributes(path_first_fast5, "/UniqueGlobalKey/tracking_id") # Extract read data (fastq, move, and trace)
+			}else{
+				f5_data <- h5readAttributes(path_first_fast5, paste0(path_first_read, "/tracking_id")) # Extract read data (fastq, move, and trace)
+			}
+
+			basecaller <- "Guppy_live"
+			bc_version <- f5_data$guppy_version
 		}else{
 			basecaller <- "Unknown"
 			bc_version <- f5_data$version
 		}
 	}
 
-	return(data.frame(basecaller=basecaller, version=bc_version))
+	return(data.frame(basecaller=basecaller, version=bc_version, stringsAsFactors=FALSE))
 }
 
 find.basecall.versions <- function(path_fast5_dir){
@@ -55,7 +71,7 @@ find.basecall.versions <- function(path_fast5_dir){
 		available_versions <- foreach(basecall=list_basecalling, .combine=rbind) %do% {
 			path_basecalling <- paste0(path_first_read,"/Analyses/",basecall)
 
-			available_version <- extract.basecall.version(path_first_fast5, path_basecalling)
+			available_version <- extract.basecall.version(path_first_fast5, path_basecalling, path_first_read)
 			available_version$basecall_group <- basecall
 
 			return(available_version)
@@ -149,8 +165,10 @@ print_message <- function(message){
 	cat(paste0("[",Sys.time(),"] ",message,".\n"))
 }
 
-make.progress.bar <- function(chunk_list_fast5_files, nbCPU){
-	pb <- progress_bar$new(format=" Processed fast5 [:bar] :percent eta: :eta (elapsed: :elapsedfull)", total=length(chunk_list_fast5_files)/nbCPU, show_after=0)
+###############
+# doMC specific
+make.progress.bar <- function(chunk_list_fast5_files, nb_threads){
+	pb <- progress_bar$new(format=" Processed fast5 [:bar] :percent eta: :eta (elapsed: :elapsedfull)", total=length(chunk_list_fast5_files)/nb_threads, show_after=0)
 
 	return(pb)
 }
@@ -160,20 +178,45 @@ initialize.progress.bar <- function(pb){
 	pb$tick(0)
 }
 
-progress.tracker <- function(pb, chunk_idx, nbCPU){
-	if(chunk_idx %% nbCPU == 0){
+progress.tracker <- function(pb, chunk_idx, nb_threads){
+	if(chunk_idx %% nb_threads == 0){
 		pb$tick()
 	}
 }
 
-terminate.progress.bar <- function(pb, chunk_list_fast5_files, nbCPU){
+terminate.progress.bar <- function(pb, chunk_list_fast5_files, nb_threads){
 	# Forces progress bar to complete before removed, not critical
-	pb$tick(length(chunk_list_fast5_files)/nbCPU)
+	pb$tick(length(chunk_list_fast5_files)/nb_threads)
+}
+# doMC specific
+###############
+
+find.fast5.type <- function(f5_content){
+	if(any(grepl("^/read_.*",f5_content, perl=TRUE)==TRUE)){
+		fast5_type <- "multi"
+	}else if(any(grepl("^/Analyses",f5_content, perl=TRUE)==TRUE)){
+		fast5_type <- "single"
+	}else{
+		fast5_type <- "unknown"
+	}
+
+	return(fast5_type)
 }
 
-extract.sequence <- function(path_fast5, sample_name, path_output, nbCPU, chunk_size, seq_type, basecall_group){
+extact.fasta.from.fast5 <- function(f5_data, f5_file_path, row_to_keep){
+	detail_fastq <- strsplit(f5_data$Fastq,"\n")[[1]] # Isolate fastq
+	read_name <- gsub("^@",">",strsplit(detail_fastq[1]," ")[[1]][1]) # Edit read name to match indexed formating
+	read_name_indexed <- paste0(read_name," ",gsub(".fast5","",basename(f5_file_path))," ",f5_file_path) # Assemble read name and index
+	sequence_noname <- paste0(detail_fastq[eval(parse(text=row_to_keep))], collapse="\n") # Aggrerate sequence data without name (fasta or fastq)
+
+	return(paste0(read_name_indexed,"\n",sequence_noname))
+}
+
+extract.sequence <- function(path_fast5, sample_name, path_output, nb_threads, chunk_size, seq_type, basecall_group){
+	print_message("Localize all fast5 files")
 	list_fast5_files <- list.files(paste0(path_fast5), pattern="*.fast5", recursive=TRUE)
 
+	print_message(paste0("    Found ",length(list_fast5_files)," fast5 files"))
 	chunk_list_fast5_files <- split(list_fast5_files, ceiling(seq_along(list_fast5_files)/chunk_size))
 
 	# Define which row to keep from the default fastq information present in fast5
@@ -183,41 +226,48 @@ extract.sequence <- function(path_fast5, sample_name, path_output, nbCPU, chunk_
 		row_to_keep <- "2"
 	}
 
-	pb <- make.progress.bar(chunk_list_fast5_files, nbCPU)
 	print_message("Extract sequences from fast5")
-	initialize.progress.bar(pb)
-	registerDoMC(cores=nbCPU)
-	sequences <- foreach(chunk_idx=seq(1,length(chunk_list_fast5_files))) %dopar% {
-		fast5_files <- chunk_list_fast5_files[[chunk_idx]]
 
-		subset_sequence <- foreach(f5_file=fast5_files) %do% {
+	use_doMC <- TRUE # revert if necessary
+	if(use_doMC){
+		pb <- make.progress.bar(chunk_list_fast5_files, nb_threads)
+		initialize.progress.bar(pb)
+		registerDoMC(cores=nb_threads)
+	}else{
+		registerDoFuture()
+		plan(multicore, workers=nb_threads)
+
+		handlers(global=TRUE)
+		handlers(handler_progress(format=" Processed fast5 [:bar] :percent eta: :eta (elapsed: :elapsedfull)", show_after=0))
+
+		p <- progressor(steps=length(chunk_list_fast5_files))
+	}
+
+	sequences <- foreach(chunk_idx=seq(1,length(chunk_list_fast5_files)), .final=function(x){do.call(rbind,x)}) %dopar% {
+		subset_linear_sequences <- foreach(f5_file=chunk_list_fast5_files[[chunk_idx]], .final=function(x){do.call(rbind,x)}) %do% {
 			f5_file_path <- normalizePath(paste0(path_fast5, f5_file))
-			f5_content <- h5ls(f5_file_path)
-			if(any(grepl(paste0("^/read_.*/Analyses/",basecall_group,"/BaseCalled_template"),f5_content$group, perl=TRUE)==TRUE)){
-				# This is a multi-read fast5 file
-				list_fast5_reads <- unique(f5_content$group[grepl(paste0("^/read_.*/Analyses/",basecall_group,"/BaseCalled_template"),f5_content$group, perl=TRUE)])
-				list_linear_sequence <- foreach(f5_read_data=list_fast5_reads) %do% { # , .combine=c
-					f5_data <- h5read(f5_file_path, f5_read_data) # Extract read data (fastq, move, and trace)
-					detail_fastq <- strsplit(f5_data$Fastq,"\n")[[1]] # Isolate fastq
-					read_name <- gsub("^@",">",strsplit(detail_fastq[1]," ")[[1]][1]) # Edit read name to match indexed formating
-					read_name_indexed <- paste0(read_name," ",gsub(".fast5","",basename(f5_file_path))," ",f5_file_path) # Assemble read name and index
-					sequence_noname <- paste0(detail_fastq[eval(parse(text=row_to_keep))], collapse="\n") # Aggrerate sequence data without name (fasta or fastq)
 
-					subset_linear_sequence <- paste0(read_name_indexed,"\n",sequence_noname,"\n") # Assemble read information as fasta or fastq
+			# Find read(s) information
+			f5_content <- h5ls(f5_file_path, recursive=FALSE)
+			f5_content <- paste0(f5_content$group, f5_content$name)
+
+			# Find fast5 type
+			fast5_type <- find.fast5.type(f5_content)
+
+			if(fast5_type=="multi"){
+				linear_sequence <- foreach(f5_read_data=f5_content, .final=function(x){trimws(do.call(paste0,x))}) %do% {
+					# Extract read data (fastq, move, and trace)
+					f5_data <- h5read(f5_file_path, paste0(f5_read_data,"/Analyses/",basecall_group,"/BaseCalled_template"))
+
+					subset_linear_sequence <- paste0(extact.fasta.from.fast5(f5_data, f5_file_path, row_to_keep),"\n") # Add \n to merge reads
 
 					return(subset_linear_sequence)
 				}
-				linear_sequence <- do.call(paste0,list_linear_sequence) # Put all fasta/fastq entries in same string
+			}else if(fast5_type=="single"){
+				# Extract read data (fastq, move, and trace)
+				f5_data <- h5read(f5_file_path,paste0("/Analyses/",basecall_group,"/BaseCalled_template"))
 
-			}else if(any(grepl(paste0("^/Analyses/",basecall_group,"/BaseCalled_template"),f5_content$group, perl=TRUE)==TRUE)){
-				# This is NOT a multi-read fast5 file
-				f5_data <- h5read(f5_file_path,paste0("/Analyses/",basecall_group,"/BaseCalled_template")) # Extract read data (fastq, move, and trace)
-				detail_fastq <- strsplit(f5_data$Fastq,"\n")[[1]] # Isolate fastq
-				read_name <- gsub("^@",">",strsplit(detail_fastq[1]," ")[[1]][1]) # Edit read name to match indexed formating
-				read_name_indexed <- paste0(read_name," ",gsub(".fast5","",basename(f5_file_path))," ",f5_file_path) # Assemble read name and index
-				sequence_noname <- paste0(detail_fastq[eval(parse(text=row_to_keep))], collapse="\n") # Aggrerate sequence data without name (fasta or fastq)
-
-				linear_sequence <- paste0(read_name_indexed,"\n",sequence_noname) # Assemble read information as fasta or fastq
+				linear_sequence <- extact.fasta.from.fast5(f5_data, f5_file_path, row_to_keep)
 			}else{
 				linear_sequence <- "uncalled"
 			}
@@ -225,22 +275,33 @@ extract.sequence <- function(path_fast5, sample_name, path_output, nbCPU, chunk_
 			return(linear_sequence)
 		}
 
-		progress.tracker(pb, chunk_idx, nbCPU)
+		# Progress tracker
+		if(use_doMC){
+			progress.tracker(pb, chunk_idx, nb_threads)
+		}else{
+			p()
+		}
 
-		return(do.call(rbind,subset_sequence))
+		return(subset_linear_sequences)
 	}
-	registerDoSEQ()
-	terminate.progress.bar(pb, chunk_list_fast5_files, nbCPU)
-	sequences <- do.call(rbind,sequences)
 
+	# Terminate progress bar if not done already
+	if(use_doMC){
+		registerDoSEQ()
+		terminate.progress.bar(pb, chunk_list_fast5_files, nb_threads)
+	}else{
+		plan(sequential)
+	}
+	
 	# Remove uncalled reads and print warning
-	isnot_basecalled <- grepl("uncalled",sequences,fixed=T)
+	isnot_basecalled <- grepl("uncalled", sequences, fixed=TRUE)
 	if(any(isnot_basecalled)){
 		warning(paste0(sum(isnot_basecalled==TRUE)," reads weren't basecalled."))
 		sequences <- sequences[!isnot_basecalled]
 	}
+	print_message("All fast5 files processed")
 
-	write.table(sequences, file=paste0(path_output,sample_name,".",seq_type), quote=F, row.names=F, col.names=F)
+	write.table(sequences, file=paste0(path_output,sample_name,".",seq_type), quote=FALSE, row.names=FALSE, col.names=FALSE)
 }
 
 suppressMessages(library(optparse))

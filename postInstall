@@ -96,6 +96,8 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('plyr', version='1.8.4', upgrade='never'); \
     devtools::install_version('MASS', version='7.3-51.4', upgrade='never'); \
     devtools::install_version('tidyr', version='0.8.3', upgrade='never'); \
+    devtools::install_version('doFuture', version='0.8.2', upgrade='never'); \
+    devtools::install_version('progressr', version='0.7.0', upgrade='never'); \
 "
 
 # Packages for analysis

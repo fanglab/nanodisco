@@ -1675,7 +1675,7 @@ refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, ge
 			labs(title=paste0("Refinement plot for ",compound_name," motifs")) +
 			labs(y="Mean current differences (pA)") +
 			coord_cartesian(xlim=c(xmin_value-0.5, xmax_value+0.5), ylim=c(ymin_value, ymax_value), expand=FALSE) +
-			scale_x_continuous(labels=cleanup_label) +
+			scale_x_continuous(breaks=seq(xmin_value, xmax_value, 2)) +
 			theme_bw()
 
 		filter_iso <- FALSE # Not used now
