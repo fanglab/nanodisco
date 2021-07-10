@@ -40,6 +40,13 @@ cp etc/r9-models/r9.4_450bps.nucleotide.6mer.template.model /usr/bin/r9.4_450bps
 
 cd ..
 
+# Install minimap2
+git clone -b v2.21 https://github.com/lh3/minimap2
+cd minimap2
+make
+
+cd ..
+
 # Install bwa version 0.7.15
 wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2
 tar xf bwa-0.7.15.tar.bz2 && rm bwa-0.7.15.tar.bz2
