@@ -44,6 +44,7 @@ cd ..
 git clone -b v2.21 https://github.com/lh3/minimap2
 cd minimap2
 make
+cp minimap2 /usr/bin/minimap2
 
 cd ..
 
