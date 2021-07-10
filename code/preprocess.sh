@@ -153,11 +153,17 @@ else
 fi
 
 ## Prepare reference
-if [[ ! -f $path_reference_genome".amb" || ! -f $path_reference_genome".ann" || ! -f $path_reference_genome".bwt" || ! -f $path_reference_genome".pac" || ! -f $path_reference_genome".sa" ]]; then
-  print_message "Prepare bwa index"
-  bwa index $path_reference_genome 2> $path_output_sample"_log" # Needed for mapping reads
+# if [[ ! -f $path_reference_genome".amb" || ! -f $path_reference_genome".ann" || ! -f $path_reference_genome".bwt" || ! -f $path_reference_genome".pac" || ! -f $path_reference_genome".sa" ]]; then
+#   print_message "Prepare bwa index"
+#   bwa index $path_reference_genome 2> $path_output_sample"_log" # Needed for mapping reads
+#   check_error "$?" $path_output_sample # Hide bwa index stderr by default and show only if an error is identified
+# fi
+if [[ ! -f $path_reference_genome".mmi" ]]; then
+  print_message "Prepare minimap2 index"
+  minimap2 -x map-ont -d ${path_reference_genome/.fasta/.mmi} $path_reference_genome > /dev/null 2>&1 # Needed for mapping reads
   check_error "$?" $path_output_sample # Hide bwa index stderr by default and show only if an error is identified
 fi
+
 if [[ ! -f $path_reference_genome".fai" ]]; then
   print_message "Prepare samtools index"
   samtools faidx $path_reference_genome 2> $path_output_sample"_log" # Needed for indexing reads
@@ -166,7 +172,8 @@ fi
 
 ## Map reads on reference
 print_message "Map reads"
-bwa mem -t $nb_threads -x ont2d $path_reference_genome $path_output_sample".fasta" 2> $path_output_sample"_log" | samtools view -b - | samtools sort -T $path_output_sample"_tmp" > $path_output_sample".sorted.bam"
+# bwa mem -t $nb_threads -x ont2d $path_reference_genome $path_output_sample".fasta" 2> $path_output_sample"_log" | samtools view -b - | samtools sort -T $path_output_sample"_tmp" > $path_output_sample".sorted.bam"
+minimap2 -ax map-ont -t $nb_threads ${path_reference_genome/.fasta/.mmi} $path_output_sample".fasta" 2> $path_output_sample"_log" | samtools view -b - | samtools sort -T $path_output_sample"_tmp" > $path_output_sample".sorted.bam"
 check_error "$?" $path_output_sample # Hide bwa mem stderr by default and show only if an error is identified
 
 ## Index alignment
