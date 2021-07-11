@@ -45,6 +45,7 @@ COPY code /home/nanodisco/code
 
 # Install remaining dependencies from sources (nanopolish, bwa, samtools, R packages, MEME, bedtools).
 COPY postInstall /
+RUN bash /postInstall
 # RUN bash /nanodisco/postInstall
 
 # Define working directory.
