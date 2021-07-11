@@ -38,14 +38,15 @@ RUN apt-get update \
 # Include nanodisco toolbox
 RUN mkdir /home/nanodisco
 
-# COPY code /home/nanodisco/code
+COPY code /home/nanodisco/code
 # Retrieve repository
-RUN git clone --depth 1 --branch dev https://github.com/fanglab/nanodisco
-RUN cp /nanodisco/code/* /home/nanodisco/code/
+# RUN git clone --depth 1 --branch dev_minimap2 https://github.com/fanglab/nanodisco
+# RUN cp -r /nanodisco/code /home/nanodisco/
 
 # Install remaining dependencies from sources (nanopolish, bwa, samtools, R packages, MEME, bedtools).
-# COPY postInstall /
-RUN bash /nanodisco/postInstall
+COPY postInstall /
+RUN bash /postInstall
+# RUN bash /nanodisco/postInstall
 
 # Define working directory.
 WORKDIR /home/nanodisco
