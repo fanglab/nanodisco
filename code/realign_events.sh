@@ -13,7 +13,10 @@ function check_bwa_index (){
   ref=$1
 
   if [ ! -e "$ref.amb" ] || [ ! -e "$ref.ann" ] || [ ! -e "$ref.pac" ] || [ ! -e "$ref.bwt" ] || [ ! -e "$ref.sa" ]; then
-    bwa index $ref
+    # bwa index $ref
+  fi
+  if [[ ! -f $path_reference_genome".mmi" ]]; then
+    minimap2 -x map-ont -d ${ref/.fasta/.mmi} $ref
   fi
 }
 
@@ -64,24 +67,27 @@ check_bwa_index $revcgenome
 # 2048 & 16 may remove real data, de novo assembly could resolve somes
 # grep not elegant but seems only solution to remove multimapped reads.
 # -v 1 to remove unwanted output on std
+cmd_bwa="bwa mem -x ont2d -t $nb_threads"
+cmd_mm="minimap2 -ax map-ont -t $nb_threads"
+cmd_mapping=$cmd_mm
 if [ "$map_type" == "all" ]; then
-  bwa mem -t $nb_threads -x ont2d $genome ${fasta/fasta/fwd.fasta} | samtools view -bF 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
-  bwa mem -t $nb_threads -x ont2d $revcgenome ${fasta/fasta/rev.fasta} | samtools view -b"$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
+  $cmd_mapping $genome ${fasta/fasta/fwd.fasta} | samtools view -bF 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
+  $cmd_mapping $revcgenome ${fasta/fasta/rev.fasta} | samtools view -b"$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
 elif [ "$map_type" == "noMulti" ]; then
-  bwa mem -t $nb_threads -x ont2d $genome ${fasta/fasta/fwd.fasta} | grep -v 'XA:Z:' | samtools view -bF 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
-  bwa mem -t $nb_threads -x ont2d $revcgenome ${fasta/fasta/rev.fasta} | grep -v 'XA:Z:' | samtools view -b"$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
+  $cmd_mapping $genome ${fasta/fasta/fwd.fasta} | grep -v 'XA:Z:' | samtools view -bF 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
+  $cmd_mapping $revcgenome ${fasta/fasta/rev.fasta} | grep -v 'XA:Z:' | samtools view -b"$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
 elif [ "$map_type" == "noAddSupp" ]; then
-  bwa mem -t $nb_threads -x ont2d $genome ${fasta/fasta/fwd.fasta} | samtools view -bF 2048 -F 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
-  bwa mem -t $nb_threads -x ont2d $revcgenome ${fasta/fasta/rev.fasta} | samtools view -bF 2048 "$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
+  $cmd_mapping $genome ${fasta/fasta/fwd.fasta} | samtools view -bF 2048 -F 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
+  $cmd_mapping $revcgenome ${fasta/fasta/rev.fasta} | samtools view -bF 2048 "$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
 elif [ "$map_type" == "noSupp" ]; then
-  bwa mem -t $nb_threads -x ont2d $genome ${fasta/fasta/fwd.fasta} | grep -v 'SA:Z:' | samtools view -bF 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
-  bwa mem -t $nb_threads -x ont2d $revcgenome ${fasta/fasta/rev.fasta} | grep -v 'SA:Z:' | samtools view -b"$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
+  $cmd_mapping $genome ${fasta/fasta/fwd.fasta} | grep -v 'SA:Z:' | samtools view -bF 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
+  $cmd_mapping $revcgenome ${fasta/fasta/rev.fasta} | grep -v 'SA:Z:' | samtools view -b"$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
 elif [ "$map_type" == "noMultiAddSupp" ]; then
-  bwa mem -t $nb_threads -x ont2d $genome ${fasta/fasta/fwd.fasta} | grep -v 'XA:Z:' | samtools view -bF 2048 -F 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
-  bwa mem -t $nb_threads -x ont2d $revcgenome ${fasta/fasta/rev.fasta} | grep -v 'XA:Z:' | samtools view -bF 2048 "$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
+  $cmd_mapping $genome ${fasta/fasta/fwd.fasta} | grep -v 'XA:Z:' | samtools view -bF 2048 -F 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
+  $cmd_mapping $revcgenome ${fasta/fasta/rev.fasta} | grep -v 'XA:Z:' | samtools view -bF 2048 "$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
 elif [ "$map_type" == "none" ]; then
-  bwa mem -t $nb_threads -x ont2d $genome ${fasta/fasta/fwd.fasta} | grep -v 'XA:Z:\|SA:Z:' | samtools view -bF 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
-  bwa mem -t $nb_threads -x ont2d $revcgenome ${fasta/fasta/rev.fasta} | grep -v 'XA:Z:\|SA:Z:' | samtools view -b"$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
+  $cmd_mapping $genome ${fasta/fasta/fwd.fasta} | grep -v 'XA:Z:\|SA:Z:' | samtools view -bF 16 - | samtools sort -T "fwd.$chunk" > ${fasta/fasta/fwd.sorted.bam}
+  $cmd_mapping $revcgenome ${fasta/fasta/rev.fasta} | grep -v 'XA:Z:\|SA:Z:' | samtools view -b"$st_rev_flag" 16 - | samtools sort -T "rev.$chunk" > ${fasta/fasta/rev.sorted.bam}
 else
   echo "Problem with mapping type." # TODO Handle by R?
   exit 2
@@ -94,4 +100,3 @@ samtools index ${fasta/fasta/rev.sorted.bam}
 correct_events $((nb_threads/2)) ${fasta/fasta/fwd.fasta} ${fasta/fasta/fwd.sorted.bam} $genome ${fasta/fasta/fwd.eventalign} ${fasta/fasta/fwd.eventalign.err}
 correct_events $((nb_threads/2)) ${fasta/fasta/rev.fasta} ${fasta/fasta/rev.sorted.bam} $revcgenome ${fasta/fasta/rev.eventalign} ${fasta/fasta/rev.eventalign.err}
 wait
-
