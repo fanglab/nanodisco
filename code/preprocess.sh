@@ -160,7 +160,7 @@ fi
 # fi
 if [[ ! -f $path_reference_genome".mmi" ]]; then
   print_message "Prepare minimap2 index"
-  minimap2 -x map-ont -d ${path_reference_genome/.fasta/.mmi} $path_reference_genome > /dev/null 2>&1 # Needed for mapping reads
+  minimap2 -x map-ont -d ${path_reference_genome/.fasta/.mmi} $path_reference_genome > $path_output_sample"_log" 2>&1 # Needed for mapping reads
   check_error "$?" $path_output_sample # Hide bwa index stderr by default and show only if an error is identified
 fi
 
