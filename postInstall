@@ -24,14 +24,14 @@ wget -q https://nanodiscodata.s3.us-east-2.amazonaws.com/data_default.tar.gz
 tar -zxf data_default.tar.gz -C /home && rm data_default.tar.gz
 
 # Install Nanopolish version 0.11.0
-git clone --recursive -b v0.11.0 https://github.com/jts/nanopolish.git nanopolish-0.11.0
-cd nanopolish-0.11.0
+git clone --recursive -b v0.13.3 https://github.com/jts/nanopolish.git nanopolish-0.13.3
+cd nanopolish-0.13.3
 
 # Edit Makefile to update dead link
-sed -i -e 's@\-e $(EIGEN_VERSION).tar.bz2@\-e eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
-sed -i -e 's@wget http://bitbucket.org/eigen/eigen/get/$(EIGEN_VERSION).tar.bz2@wget https://gitlab.com/libeigen/eigen/\-/archive/$(EIGEN_VERSION)/eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
-sed -i -e 's@tar \-xjf $(EIGEN_VERSION).tar.bz2@tar \-xjf eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
-sed -i -e 's@mv eigen\-eigen\-\* eigen@mv eigen\-$(EIGEN_VERSION) eigen@g' Makefile
+# sed -i -e 's@\-e $(EIGEN_VERSION).tar.bz2@\-e eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
+# sed -i -e 's@wget http://bitbucket.org/eigen/eigen/get/$(EIGEN_VERSION).tar.bz2@wget https://gitlab.com/libeigen/eigen/\-/archive/$(EIGEN_VERSION)/eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
+# sed -i -e 's@tar \-xjf $(EIGEN_VERSION).tar.bz2@tar \-xjf eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
+# sed -i -e 's@mv eigen\-eigen\-\* eigen@mv eigen\-$(EIGEN_VERSION) eigen@g' Makefile
 
 # Resume Nanopolish install
 make
@@ -48,19 +48,19 @@ cp minimap2 /usr/bin/minimap2
 
 cd ..
 
-# Install bwa version 0.7.15
-wget https://github.com/lh3/bwa/releases/download/v0.7.15/bwa-0.7.15.tar.bz2
-tar xf bwa-0.7.15.tar.bz2 && rm bwa-0.7.15.tar.bz2
-cd bwa-0.7.15
+# Install bwa version 0.7.17
+wget https://github.com/lh3/bwa/releases/download/v0.7.17/bwa-0.7.17.tar.bz2
+tar xf bwa-0.7.17.tar.bz2 && rm bwa-0.7.17.tar.bz2
+cd bwa-0.7.17
 make
 cp bwa /usr/bin/bwa
 
 cd ..
 
-# Install samtools version 1.3
-wget https://sourceforge.net/projects/samtools/files/samtools/1.3/samtools-1.3.tar.bz2
-tar xf samtools-1.3.tar.bz2 && rm samtools-1.3.tar.bz2
-cd samtools-1.3
+# Install samtools version 1.13
+wget https://sourceforge.net/projects/samtools/files/samtools/1.13/samtools-1.13.tar.bz2
+tar xf samtools-1.13.tar.bz2 && rm samtools-1.13.tar.bz2
+cd samtools-1.13
 make
 cp samtools /usr/bin/samtools 
 
@@ -177,9 +177,9 @@ mkdir -p /etc/libibverbs.d # Fix one OpenMPI warning
 
 cd ..
 
-# Install bedtools version 2.26.0
-wget https://github.com/arq5x/bedtools2/releases/download/v2.26.0/bedtools-2.26.0.tar.gz
-tar xvf bedtools-2.26.0.tar.gz && rm bedtools-2.26.0.tar.gz
+# Install bedtools version 2.30.0
+wget https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools-2.30.0.tar.gz
+tar xvf bedtools-2.30.0.tar.gz && rm bedtools-2.30.0.tar.gz
 cd bedtools2
 make
 cp /bedtools2/bin/bedtools /usr/bin/bedtools
