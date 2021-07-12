@@ -1,4 +1,4 @@
-FROM rocker/r-ver:3.5.3
+FROM rocker/r-ver:4.1.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
