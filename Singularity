@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: rocker/r-ver:3.5.3
+From: rocker/r-ver:4.1.0
 
 %help
 For more information, please consult https://github.com/fanglab/nanodisco
