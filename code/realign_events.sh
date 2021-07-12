@@ -13,7 +13,7 @@ function check_bwa_index (){
   ref=$1
 
   if [ ! -e "$ref.amb" ] || [ ! -e "$ref.ann" ] || [ ! -e "$ref.pac" ] || [ ! -e "$ref.bwt" ] || [ ! -e "$ref.sa" ]; then
-    # bwa index $ref
+    bwa index $ref
   fi
   if [[ ! -f $path_reference_genome".mmi" ]]; then
     minimap2 -x map-ont -d ${ref/.fasta/.mmi} $ref
