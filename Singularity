@@ -38,8 +38,8 @@ For more information, please consult https://github.com/fanglab/nanodisco
 
     # Include nanodisco toolbox
     mkdir /home/nanodisco
-    git clone --depth 1 --branch v1.0.2 https://github.com/fanglab/nanodisco
-    mv /nanodisco/code /home/nanodisco/code
+    git clone --depth 1 --branch dev https://github.com/fanglab/nanodisco
+    cp -r /nanodisco/code /home/nanodisco/
 
     # Install remaining dependencies from sources (nanopolish, bwa, samtools, R packages, MEME, bedtools)
     # mv /nanodisco/postInstall /postInstall
