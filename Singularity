@@ -4,6 +4,11 @@ From: rocker/r-ver:3.5.3
 %help
 For more information, please consult https://github.com/fanglab/nanodisco
 
+# Add files to the container
+%setup
+    cp postInstall /tmp/postInstall
+    cp -r code /tmp/code
+
 # Install dependencies
 %post
     # Install basic dependencies
@@ -38,12 +43,11 @@ For more information, please consult https://github.com/fanglab/nanodisco
 
     # Include nanodisco toolbox
     mkdir /home/nanodisco
-    git clone --depth 1 --branch dev https://github.com/fanglab/nanodisco
-    cp -r /nanodisco/code /home/nanodisco/
+    mv /tmp/code /home/nanodisco/code
 
     # Install remaining dependencies from sources (nanopolish, bwa, samtools, R packages, MEME, bedtools)
-    # mv /nanodisco/postInstall /postInstall
-    bash /nanodisco/postInstall
+    mv /tmp/postInstall /postInstall
+    bash /postInstall
 
     # Define working directory
     cd /home/nanodisco
