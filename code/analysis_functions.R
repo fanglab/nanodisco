@@ -56,6 +56,7 @@ load.libraries.motif <- function(){
 	library(tidyr)
 	library(ggplot2)
 	library(RColorBrewer)
+	library(egg)
 }
 
 load.libraries.characterize <- function(){
@@ -82,6 +83,18 @@ load.libraries.merge <- function(){
 	library(optparse)
 	library(foreach)
 	library(plyr)
+}
+
+load.libraries.refine <- function(){
+	library(stringr)
+	library(doMC)
+	library(Biostrings)
+	library(GenomicRanges)
+	library(plyr)
+	library(dplyr)
+	library(ggplot2)
+	library(RColorBrewer)
+	library(egg)
 }
 
 print_message <- function(message){
@@ -292,6 +305,67 @@ check.input.merge <- function(opt){
 	return(opt)
 }
 
+check.input.refine <- function(opt){
+	# Check if current differences file exist.
+	if(is.null(opt$path_diff_data)){
+		cat("Parameter -d/--path_diff_data is missing. Please provide the path to a current differences file.\n")
+		quit(save="no", status=3)
+	}else{
+		if(!file.exists(opt$path_diff_data)){
+			cat(paste0("Current differences file doesn't exist (",opt$path_diff_data,").\n"))
+			cat("Please check -d/--path_diff_data parameter and/or run nanodisco difference.\n")
+			quit(save="no", status=4)
+		}
+	}
+	# Check if output directory exist and create if not.
+	if(!dir.exists(opt$path_output)){
+		dir.create(opt$path_output, recursive=TRUE)
+	}
+	# Check list of motif
+	if(!is.null(opt$list_motif)){
+		# Check list of motif formating
+		if(!grepl(pattern="^[ACGTRYSWKMBDHVN,]+$", x=opt$list_motif)){
+			cat(paste0("Unknown character found in comma separated list of motifs (",opt$list_motif,").\n"))
+			cat("Please check -m/--list_motif parameter. Only the following characters are recognized: 'ACGTRYSWKMBDHVN,' (e.g. GATC,CCWGG).\n")
+			quit(save="no", status=4)
+		}else{
+			opt$list_motif <- str_split(opt$list_motif, ",", simplify=TRUE)[1,]
+		}
+	}else{
+		cat("Parameter -m/--list_motif is missing. Please provide a comma separated list of motifs following IUPAC nucleotide code (e.g. GATC,CCWGG).\n")
+		quit(save="no", status=3)
+	}
+	# Check list of motif
+	if(!is.null(opt$candidate_motif)){
+		# Check list of motif formating
+		if(opt$candidate_motif=="all"){
+			opt$candidate_motif <- opt$list_motif
+		}else if(!grepl(pattern="^[ACGTRYSWKMBDHVN,]+$", x=opt$candidate_motif)){
+			cat(paste0("Unknown character found in comma separated list of motifs (",opt$candidate_motif,").\n"))
+			cat("Please check -M/--candidate_motif parameter. Only the following characters are recognized: 'ACGTRYSWKMBDHVN,' (e.g. GATC,CCWGG).\n")
+			quit(save="no", status=4)
+		}else{
+			opt$candidate_motif <- str_split(opt$candidate_motif, ",", simplify=TRUE)[1,]
+		}
+	}else{
+		cat("Parameter -M/--candidate_motif is missing. Please provide a comma separated list of motifs following IUPAC nucleotide code or 'all' (e.g. GATC,CCWGG).\n")
+		quit(save="no", status=3)
+	}
+	# Check if reference genome file exist.
+	if(is.null(opt$genome)){
+		cat("Parameter -r/--genome is missing. Please provide the path to a reference genome file.\n")
+		quit(save="no", status=3)
+	}else{
+		if(!file.exists(opt$genome)){
+			cat(paste0("Reference genome file doesn't exist (",opt$genome,").\n"))
+			cat("Please check -r/--genome parameter. Path to reference genome (.fasta or .fa).\n")
+			quit(save="no", status=4)
+		}
+	}
+
+	return(opt)
+}
+
 #   _____                           _                                        _                
 #  |  __ \                         | |                                      | |               
 #  | |  \/ ___ _ __   ___ _ __ __ _| |  _ __   __ _ _ __ __ _ _ __ ___   ___| |_ ___ _ __ ___ 
@@ -388,7 +462,7 @@ save.stat.chunks <- function(data_path, name_file, is_inSilico=FALSE){
 save.merged.stat.chunks <- function(data_path, path_file){
 	if(dir.exists(data_path)){
 		stat_data <- merge.stat.chunks(data_path)
-		saveRDS(stat_data, file=path_file)
+		saveRDS(stat_data, file=path_file, compress="bzip2")
 
 		return(stat_data)
 	}else{
@@ -1572,48 +1646,80 @@ refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, ge
 	print_message(paste0("Generating refining plot for ",potential_motif))
 	len_motif <- nchar(potential_motif)
 
-	tagged_final_stat_data <- tag.mutated.motifs(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, iupac_nc)
+	modification_at_motifs <- tag.mutated.motifs(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, iupac_nc)
 
-	if(!is.null(tagged_final_stat_data)){
+	if(!is.null(modification_at_motifs)){
 		if(automated){
 			compound_name <- paste0(potential_motif)
 		}else{
 			compound_name <- paste0(potential_motif,"_",graph_subtitle)
 		}
 
-		gp <- ggplot(tagged_final_stat_data) +
-			geom_jitter(aes(x=as.factor(distance), y=mean_diff), pch=46, height=0) +
-			geom_violin(aes(x=as.factor(distance), y=mean_diff), alpha=0.5) +
-			facet_grid(mutation_type~pos_mutation) +
-			geom_hline(yintercept=0, col="red") +
-			coord_cartesian(ylim=c(max(-15,min(tagged_final_stat_data$mean_diff)),min(15,max(tagged_final_stat_data$mean_diff)))) +
-			labs(title=paste0("Refine ",potential_motif," motif"), subtitle=paste0(graph_subtitle)) +
-			labs(x="Relative position from motif (-6:motif:1)", y="Mean pA differences") +
-			theme(text=element_text(size=20)) # strip.text.x=element_text(size=8)
-		pdf(paste0(path_output,"/","Refine_Motifs_",compound_name,".pdf"), width=4*len_motif, height=4*4)
-		print(gp)
-		dev.off()
-
-		# motif_summary <- tagged_final_stat_data %>% # TODO try to improve summary function
-		# 	group_by(mutation_type, pos_mutation, distance) %>%
-		# 	summarize(score2=abs(mean(mean_diff, na.rm=TRUE)), .groups="drop_last") %>%
-		# 	group_by(mutation_type, pos_mutation) %>%
-		# 	summarize(score=sum(score2), .groups="drop_last")
-		# motif_summary$mutation_type <- ordered(motif_summary$mutation_type, levels=c("T","G","C","A")) # Same order as facet_grid
-		motif_summary <- score.mutated.motifs(tagged_final_stat_data)
-
+		mutated_motif_score <- score.mutated.motifs(modification_at_motifs)
 		myPalette <- colorRampPalette(rev(brewer.pal(11, "Spectral")))
 
-		gp <- ggplot(motif_summary) +
-			geom_tile(aes(pos_mutation, mutation_type, fill=score)) +
+		# Plot mutated motif signal
+		xmin_value <- min(modification_at_motifs$distance)
+		xmax_value <- max(modification_at_motifs$distance)
+		ymin_value <- max(-7,min(modification_at_motifs$mean_diff))
+		ymax_value <- min(7,max(modification_at_motifs$mean_diff))
+		cleanup_label <- function(x){ sprintf("%.0f", x) }
+
+		gp_detail <- ggplot(modification_at_motifs) +
+			geom_rect(data=mutated_motif_score, aes(xmin=xmin_value-0.5, xmax=xmax_value+0.5, ymin=ymin_value, ymax=ymin_value + 2, fill=score)) +
+			geom_jitter(aes(x=distance, y=mean_diff), pch=46, height=0) +
+			geom_violin(aes(x=distance, y=mean_diff, group=distance), alpha=0.6) + # Throw warning if < one motif per strand|dir
+			geom_hline(yintercept=0, col="red") +
+			facet_grid(mutation_type~pos_mutation) +
+			scale_fill_gradientn(colours=myPalette(100), guide=FALSE) +
+			labs(title=paste0("Refinement plot for ",compound_name," motifs")) +
+			labs(y="Mean current differences (pA)") +
+			coord_cartesian(xlim=c(xmin_value-0.5, xmax_value+0.5), ylim=c(ymin_value, ymax_value), expand=FALSE) +
+			scale_x_continuous(breaks=seq(xmin_value, xmax_value, 2)) +
+			theme_bw()
+
+		filter_iso <- FALSE # Not used now
+		if(filter_iso){
+			gp_detail <- gp_detail + labs(x=paste0("Relative position from isolated ",potential_motif," motif occurrences (-3:motif:+2)"))
+		}else{
+			gp_detail <- gp_detail + labs(x=paste0("Relative position from ",potential_motif," motif occurrences (-3:motif:+2)"))
+		}
+
+		# Plot mutated motif scores
+		gp_score <- ggplot(mutated_motif_score) +
+			geom_tile(aes(x=pos_mutation, y=mutation_type, fill=score)) +
+			geom_text(aes(x=pos_mutation, y=mutation_type, label=mutation_type)) +
 			scale_fill_gradientn(colours=myPalette(100)) +
-			labs(title=paste0("Refine scores for ",potential_motif," motif"), subtitle=paste0(graph_subtitle)) +
-			labs(x="Mutated Position", y="Mutated Base", fill="Score")
-		pdf(paste0(path_output,"/","Refine_Motifs_scores_",compound_name,".pdf"), width=1*len_motif, height=1*4)
-		print(gp)
+			# labs(title=paste0(compound_name," motif scores")) +
+			labs(x="Mutated position", y="Mutated base", fill="Score") +
+			coord_cartesian(expand=FALSE) +
+			theme_bw() +
+			theme(axis.text.y=element_blank(), axis.ticks.y=element_blank()) +
+			theme(legend.position="right", legend.direction="horizontal") +
+			guides(fill=guide_colourbar(title.vjust=0.5, title.position="top"))
+		gp_empty <- ggplot() +
+			geom_blank() +
+			theme_bw() +
+			theme(panel.border=element_blank())
+
+		pdf(file=NULL) # Avoid opening empty window
+		gp_combine <- arrangeGrob(grobs=list(gp_detail, gp_score, gp_empty), widths=c(1, 2), heights=c(5, 1.4), layout_matrix=rbind(c(1, 1), c(2, 3)))
 		dev.off()
 
-		return(list(tag_mutated_motifs=tagged_final_stat_data, motif_summary=motif_summary))
+		# Handle warnings from mutated motifs with few/no data points
+		withCallingHandlers({
+			ggsave(paste0(path_output,"/","Refine_Motifs_",compound_name,".pdf"), gp_combine, width=len_motif*2.8, height=8.5, device="pdf")
+		}, warning=function(w){
+			if(grepl("no non-missing arguments to max; returning", w$message)){
+				invokeRestart("muffleWarning") # Expected and "ok" warning
+			}else if(grepl("Computation failed in .*stat_ydensity().*", w$message)){
+				invokeRestart("muffleWarning") # Expected and "ok" warning
+			}else{
+				print(w)
+			}
+		})
+
+		return(list(tag_mutated_motifs=modification_at_motifs, motif_summary=mutated_motif_score))
 	}else{
 		print("   Not enough occurrences to plot.")
 		
@@ -1658,7 +1764,7 @@ user.confirm.motif <- function(discovered_motifs, potential_motif, final_stat_da
 	while(has_responded0==0){
 		response <- readline_clean(paste0("Do you want to refine ",potential_motif," motif? (Y/N)"))
 		if(response=="Y"){
-			refine.motif(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle)
+			stifle <- refine.motif(potential_motif, discovered_motifs, final_stat_data, genome, nbCPU, seq_params, iupac_nc, meme_output, graph_subtitle)
 			
 			has_responded1 <- 0
 			while(has_responded1==0){

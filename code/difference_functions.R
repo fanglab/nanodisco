@@ -76,7 +76,7 @@ check.reference <- function(genome){
 	}
 }
 
-extract.basecall.version <- function(path_first_fast5, path_basecalling){
+extract.basecall.version <- function(path_first_fast5, path_basecalling, path_first_read=NA){
 	f5_data <- h5readAttributes(path_first_fast5, path_basecalling) # Extract read data (fastq, move, and trace)
 	
 	if(length(f5_data)==0){
@@ -97,6 +97,15 @@ extract.basecall.version <- function(path_first_fast5, path_basecalling){
 		}else if(grepl("Guppy",f5_data$name)){
 			basecaller <- "Guppy"
 			bc_version <- f5_data$version
+		}else if(grepl("MinKNOW-Live-Basecalling",f5_data$name)){
+			if(is.na(path_first_read)){ # If not multi-read fast5
+				f5_data <- h5readAttributes(path_first_fast5, "/UniqueGlobalKey/tracking_id") # Extract read data (fastq, move, and trace)
+			}else{
+				f5_data <- h5readAttributes(path_first_fast5, paste0(path_first_read, "/tracking_id")) # Extract read data (fastq, move, and trace)
+			}
+
+			basecaller <- "Guppy_live"
+			bc_version <- f5_data$guppy_version
 		}else{
 			basecaller <- "Unknown"
 			bc_version <- f5_data$version
@@ -122,7 +131,7 @@ find.basecall.versions <- function(path_indexed_fasta){
 		available_versions <- foreach(basecall=list_basecalling, .combine=rbind) %do% {
 			path_basecalling <- paste0(path_first_read,"/Analyses/",basecall)
 
-			available_version <- extract.basecall.version(path_first_fast5, path_basecalling)
+			available_version <- extract.basecall.version(path_first_fast5, path_basecalling, path_first_read)
 			available_version$basecall_group <- basecall
 
 			return(available_version)
@@ -528,7 +537,8 @@ prepare.index <- function(sample_name, path_input, path_output, genome, chunk_si
 	# Remove unmapped read, not necessary?
 	chunks_fast5_info <- subset(chunks_fast5_info, strand %in% c("+","-"))
 	chunks_fast5_info <- droplevels(chunks_fast5_info)
-	chunks_fast5_info$strand <- mapvalues(chunks_fast5_info$strand, from=c("+","-"), to=c("fwd","rev"))
+	idx_strand_avail <- match(levels(chunks_fast5_info$strand), c("+","-"))
+	chunks_fast5_info$strand <- mapvalues(chunks_fast5_info$strand, from=c("+","-")[idx_strand_avail], to=c("fwd","rev")[idx_strand_avail])
 
 	# Create index from read name to fast5 file
 	print(paste0("  Link fast5 to fasta for ",sample_name,"."))
@@ -672,10 +682,12 @@ correct.event.data <- function(path_output, idx_chunk, sample_name, genome, chun
 	# Load corrected events
 	path_fwd <- gsub(".fasta",".fwd.eventalign",path_fasta)
 	realign_fwd <- fread(path_fwd, header=T, sep="\t", stringsAsFactors=TRUE, showProgress=FALSE) #showProgress=FALSE
+	realign_fwd$contig <- as.factor(realign_fwd$contig)
 
 	path_rev <- gsub(".fasta",".rev.eventalign",path_fasta)
 	realign_rev <- fread(path_rev, header=T, sep="\t", stringsAsFactors=TRUE, showProgress=FALSE) #showProgress=FALSE
-
+	realign_rev$contig <- as.factor(realign_rev$contig)
+	
 	# Discard unconcordant mapped contigs; Can happenned with multi-mapped reads
 	realign_fwd <- subset(realign_fwd, contig==chunk_contig_name)
 	realign_rev <- subset(realign_rev, contig==chunk_contig_name)
@@ -1046,7 +1058,7 @@ compute.statistic <- function(corrected_data, idx_chunk, chunk_size, sample_name
 		if(is.null(chunk_stat_data)){ # When parallel processing failed
 			tryCatch({ # Can still exceed memory
 					gc()
-					chunk_stat_data <- ddply(chunk_corrected_data, .(position,dir), scoring.position, inSilico=inSilico, inSilico_model=inSilico_model, min_coverage=min_coverage, .parallel=FALSE)
+					chunk_stat_data <- ddply(chunk_corrected_data, .(position, dir), scoring.position, inSilico=inSilico, inSilico_model=inSilico_model, min_coverage=min_coverage, .parallel=FALSE)
 				}, error = function(e) {
 					print(paste0("  Failed scoring chunk #",idx_chunk," (e)."))
 					print(e)
