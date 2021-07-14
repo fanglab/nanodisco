@@ -23,7 +23,7 @@ find /home/nanodisco/code -type f -exec chmod 755 {} \;
 wget -q https://nanodiscodata.s3.us-east-2.amazonaws.com/data_default.tar.gz
 tar -zxf data_default.tar.gz -C /home && rm data_default.tar.gz
 
-# Install Nanopolish version 0.11.0
+# Install Nanopolish version 0.13.3
 git clone --recursive -b v0.13.3 https://github.com/jts/nanopolish.git nanopolish-0.13.3
 cd nanopolish-0.13.3
 
