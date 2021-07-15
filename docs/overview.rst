@@ -20,7 +20,7 @@ Installation
 
 .. code-block:: sh
 
-   singularity pull --name nanodisco.sif shub://fanglab/nanodisco # Download the image from singularity-hub.org
+   singularity pull --name nanodisco.sif library://fanglab/default/nanodisco # Download the image from cloud.sylabs.io
    singularity build nd_env nanodisco.sif                         # Create a container named nd_env
 
 .. include:: tool_showcase.rst
