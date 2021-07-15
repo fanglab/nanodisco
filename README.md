@@ -24,7 +24,7 @@ We are actively developing `nanodisco` to facilitate usage and broaden features.
 `nanodisco` is distributed as a fully functional image bypassing the need to install any dependencies others than the virtualization software. We currently recommend using Singularity (v3.2.1 and above), which can be installed on Linux systems and is often the preferred solution by HPC administrators ([Quick Start][Singularity Quick Start]). `nanodisco` was tested extensively with Singularity v3.2.1 and v3.5.2.
 
 ```sh
-singularity pull --name nanodisco.sif shub://fanglab/nanodisco # Download the image from singularity-hub.org
+singularity pull --name nanodisco.sif library://fanglab/default/nanodisco # Download the image from cloud.sylabs.io
 singularity build nd_env nanodisco.sif                         # Create a container named nd_env
 ```
 
