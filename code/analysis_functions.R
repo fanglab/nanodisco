@@ -850,7 +850,11 @@ rollingFunction <- function(sample_data, win_size, stat_val, smooth_func){
 	if(win_size==0){ #Do nothing
 		res <- subset(sample_data,select=c("position",stat_val))
 		colnames(res) <- c("position","p")
-	}else{
+	}else if(nrow(sample_data)<2){
+                res <- subset(sample_data, select=c("position", stat_val))
+                colnames(res) <- c("position","p")
+                res$p <- 1
+        }else{
 		p_values <- sample_data[,match(stat_val,names(sample_data))]
 		p_values[p_values==0] <- 10^-300 # Add pseudovalue for sumlog; avoid warning("Some studies omitted")
 		genomic_position <- sample_data$position
