@@ -41,7 +41,7 @@ cp etc/r9-models/r9.4_450bps.nucleotide.6mer.template.model /usr/bin/r9.4_450bps
 cd ..
 
 # Install minimap2
-git clone -b v2.21 https://github.com/lh3/minimap2
+git clone -b v2.22 https://github.com/lh3/minimap2
 cd minimap2
 make
 cp minimap2 /usr/bin/minimap2
