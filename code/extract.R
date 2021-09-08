@@ -6,11 +6,11 @@
 load.libraries.extract <- function(){
 	library("rhdf5")
 	library("foreach")
-	library("doMC")
-	# library("doFuture")
+	# library("doMC")
+	library("doFuture")
 	library("optparse")
-	# library("progressr")
-	library("progress")
+	library("progressr")
+	# library("progress")
 	library("Biostrings")
 	library("stringr")
 }
@@ -228,7 +228,7 @@ extract.sequence <- function(path_fast5, sample_name, path_output, nb_threads, c
 
 	print_message("Extract sequences from fast5")
 
-	use_doMC <- TRUE # revert if necessary
+	use_doMC <- FALSE # revert if necessary
 	if(use_doMC){
 		pb <- make.progress.bar(chunk_list_fast5_files, nb_threads)
 		initialize.progress.bar(pb)
