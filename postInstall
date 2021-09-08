@@ -49,13 +49,13 @@ cp minimap2 /usr/bin/minimap2
 cd ..
 
 # Install bwa version 0.7.17
-wget https://github.com/lh3/bwa/releases/download/v0.7.17/bwa-0.7.17.tar.bz2
-tar xf bwa-0.7.17.tar.bz2 && rm bwa-0.7.17.tar.bz2
-cd bwa-0.7.17
-make
-cp bwa /usr/bin/bwa
+# wget https://github.com/lh3/bwa/releases/download/v0.7.17/bwa-0.7.17.tar.bz2
+# tar xf bwa-0.7.17.tar.bz2 && rm bwa-0.7.17.tar.bz2
+# cd bwa-0.7.17
+# make
+# cp bwa /usr/bin/bwa
 
-cd ..
+# cd ..
 
 # Install samtools version 1.13
 wget https://sourceforge.net/projects/samtools/files/samtools/1.13/samtools-1.13.tar.bz2
