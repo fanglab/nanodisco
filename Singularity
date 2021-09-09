@@ -33,14 +33,14 @@ For more information, please consult https://github.com/fanglab/nanodisco
     && rm -rf /var/lib/apt/lists/*
 
     # Prepare for devtools dependencies
-    apt-get update && apt-get install -y --no-install-recommends "cmake" "libgit2-dev" && rm -rf /var/lib/apt/lists/*
+    apt-get update && apt-get install -y --no-install-recommends "cmake=3.16.3-1ubuntu1" "libgit2-dev=0.28.4+dfsg.1-2" && rm -rf /var/lib/apt/lists/*
 
     # Include nanodisco toolbox
     mkdir /home/nanodisco
-    git clone --depth 1 --branch dev_minimap2 https://github.com/fanglab/nanodisco
+    git clone --depth 1 --branch dev_latest https://github.com/fanglab/nanodisco
     cp -r /nanodisco/code /home/nanodisco/code
 
-    # Install remaining dependencies from sources (nanopolish, bwa, samtools, R packages, MEME, bedtools)
+    # Install remaining dependencies from sources (nanopolish, minimap2, samtools, R packages, MEME, bedtools)
     # mv /nanodisco/postInstall /postInstall
     bash /nanodisco/postInstall
 
