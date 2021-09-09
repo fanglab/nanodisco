@@ -187,26 +187,26 @@ cp /bedtools2/bin/bedtools /usr/bin/bedtools
 cd ..
 
 # apt-get installed version from Dockerfile
-# "vim" \                    # 2:8.0.0197-4+deb9u3
-# "git" \                    # 1:2.11.0-3+deb9u5
-# "wget" \                   # 1.18-5+deb9u3
-# "bzip2" \                  # 1.0.6-8.1
-# "parallel" \               # 20161222-1
-# "python" \                 # 2.7.13-2
-# "ghostscript" \            # 9.26a~dfsg-0+deb9u6
-# "libcurl4-openssl-dev" \   # 7.52.1-5+deb9u9
-# "libssl-dev" \             # 1.1.0l-1~deb9u1
-# "libxml2-dev" \            # 2.9.4+dfsg1-2.2+deb9u2
-# "libxslt1-dev" \           # 1.1.29-2.1+deb9u1
-# "zlib1g-dev" \             # 1:1.2.8.dfsg-5
-# "libncurses5-dev" \        # 6.0+20161126-1+deb9u2
-# "libncursesw5-dev" \       # 6.0+20161126-1+deb9u2
-# "libexpat1-dev" \          # 2.2.0-2+deb9u3
-# "libjson-perl" \           # 2.90-1
-# "libhtml-tree-perl"        # 5.03-2
-# "libbz2-dev" \             # 1.0.6-8.1
-# "liblzma-dev"              # 5.2.2-1.2+b1
-# "openmpi-bin" \            # 2.0.2-2
-# "libopenmpi-dev" \         # 2.0.2-2
-# "openssh-client" \         # 1:7.4p1-10+deb9u7
-# "openssh-server" \         # 1:7.4p1-10+deb9u7
+# "vim" \                    # 2:8.1.2269-1ubuntu5
+# "git" \                    # 1:2.25.1-1ubuntu3.1
+# "wget" \                   # 1.20.3-1ubuntu1
+# "bzip2" \                  # 1.0.8-2
+# "parallel" \               # 20161222-1.1
+# "python" \                 # 2.7.18
+# "ghostscript" \            # 9.50~dfsg-5ubuntu4.2
+# "libcurl4-openssl-dev" \   # 7.68.0-1ubuntu2.6
+# "libssl-dev" \             # 1.1.1f-1ubuntu2.8
+# "libxml2-dev" \            # 2.9.10+dfsg-5ubuntu0.20.04.1
+# "libxslt1-dev" \           # 1.1.34-4
+# "zlib1g-dev" \             # 1:1.2.11.dfsg-2ubuntu1.2
+# "libncurses5-dev" \        # 6.2-0ubuntu2
+# "libncursesw5-dev" \       # 6.2-0ubuntu2
+# "libexpat1-dev" \          # 2.2.9-1build1
+# "libjson-perl" \           # 4.02000-2
+# "libhtml-tree-perl"        # 5.07-2
+# "libbz2-dev" \             # 1.0.8-2
+# "liblzma-dev"              # 5.2.4-1ubuntu1
+# "openmpi-bin" \            # 4.0.3-0ubuntu1
+# "libopenmpi-dev" \         # 4.0.3-0ubuntu1
+# "openssh-client" \         # 1:8.2p1-4ubuntu0.3
+# "openssh-server" \         # 1:8.2p1-4ubuntu0.3
