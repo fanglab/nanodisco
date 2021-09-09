@@ -8,29 +8,28 @@ For more information, please consult https://github.com/fanglab/nanodisco
 %post
     # Install basic dependencies
     apt-get update && apt-get install -y --no-install-recommends \
-    "vim" \
-    "git" \
-    "wget" \
-    "bzip2" \
-    "parallel" \
-    "python" \
-    "ghostscript" \
-    "libcurl4-openssl-dev" \
-    "libssl-dev" \
-    "libxml2-dev" \
-    "libxslt1-dev" \
-    "zlib1g-dev" \
-    "libncurses5-dev" \
-    "libncursesw5-dev" \
-    "libexpat1-dev" \
-    "libjson-perl" \
-    "libhtml-tree-perl" \
-    "libbz2-dev" \
-    "liblzma-dev" \
-    "openmpi-bin" \
-    "libopenmpi-dev" \
-    "openssh-client" \
-    "openssh-server" \
+      "vim=2:8.1.2269-1ubuntu5" \
+      "git=1:2.25.1-1ubuntu3.1" \
+      "wget=1.20.3-1ubuntu1" \
+      "bzip2=1.0.8-2" \
+      "parallel=20161222-1.1" \
+      "ghostscript=9.50~dfsg-5ubuntu4.2" \
+      "libcurl4-openssl-dev=7.68.0-1ubuntu2.6" \
+      "libssl-dev=1.1.1f-1ubuntu2.8" \
+      "libxml2-dev=2.9.10+dfsg-5ubuntu0.20.04.1" \
+      "libxslt1-dev=1.1.34-4" \
+      "zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.2" \
+      "libncurses5-dev=6.2-0ubuntu2" \
+      "libncursesw5-dev=6.2-0ubuntu2" \
+      "libexpat1-dev=2.2.9-1build1" \
+      "libjson-perl=4.02000-2" \
+      "libhtml-tree-perl=5.07-2" \
+      "libbz2-dev=1.0.8-2" \
+      "liblzma-dev=5.2.4-1ubuntu1" \
+      "openmpi-bin=4.0.3-0ubuntu1" \
+      "libopenmpi-dev=4.0.3-0ubuntu1" \
+      "openssh-client=1:8.2p1-4ubuntu0.3" \
+      "openssh-server=1:8.2p1-4ubuntu0.3" \
     && rm -rf /var/lib/apt/lists/*
 
     # Prepare for devtools dependencies
