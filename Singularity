@@ -14,7 +14,7 @@ For more information, please consult https://github.com/fanglab/nanodisco
       "bzip2=1.0.8-2" \
       "parallel=20161222-1.1" \
       "python2.7" \
-      "ghostscript=9.50~dfsg-5ubuntu4.2" \
+      'ghostscript=9.50~dfsg-5ubuntu4.2' \
       "libcurl4-openssl-dev=7.68.0-1ubuntu2.6" \
       "libssl-dev=1.1.1f-1ubuntu2.8" \
       "libxml2-dev=2.9.10+dfsg-5ubuntu0.20.04.1" \
