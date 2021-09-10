@@ -88,6 +88,17 @@ while [[ $# -gt 0 ]]; do
         exit 5
       fi
       ;;
+    -c|--nb_chunks)
+      if [[ $2 =~ ^[\-0-9]+$ ]] && (( $2 > 0)); then
+        nb_chunks="$2"
+        shift # pass argument
+        shift # pass value
+      else
+        echo "-c/--nb_chunks positive integer required." >&2
+        echo -e "\t"$path_reference_genome_def >&2
+        exit 5
+      fi
+      ;;
     --basecall_version)
       basecall_version="$2"
       shift # pass argument
@@ -139,7 +150,7 @@ mkdir -p $path_output
 path_output_sample="$path_output/$name_sample"
 
 ## Extract fasta files from fast5, necessary as nanopolish create internal read<->fast5 index
-/home/nanodisco/code/extract.R -i $path_fast5 -o $path_output -b $name_sample -p $nb_threads -s fa --basecall_version $basecall_version
+/home/nanodisco/code/extract.R -i $path_fast5 -o $path_output -b $name_sample -p $nb_threads -s fa -c $nb_chunks --basecall_version $basecall_version
 
 # Check if some reads have been extracted
 if [[ -f $path_output_sample".fasta" ]]; then
@@ -173,7 +184,7 @@ fi
 ## Map reads on reference
 print_message "Map reads"
 # bwa mem -t $nb_threads -x ont2d $path_reference_genome $path_output_sample".fasta" 2> $path_output_sample"_log" | samtools view -b - | samtools sort -T $path_output_sample"_tmp" > $path_output_sample".sorted.bam"
-minimap2 -ax map-ont -t $nb_threads ${path_reference_genome/.fasta/.mmi} $path_output_sample".fasta" 2> $path_output_sample"_log" | samtools view -b - | samtools sort -T $path_output_sample"_tmp" > $path_output_sample".sorted.bam"
+minimap2 -ax map-ont -t $nb_threads ${path_reference_genome/.fasta/.mmi} $path_output_sample".fasta" 2> $path_output_sample"_log" | samtools sort -o $path_output_sample".sorted.bam" -T $path_output_sample"_tmp" -
 check_error "$?" $path_output_sample # Hide bwa mem stderr by default and show only if an error is identified
 
 ## Index alignment
