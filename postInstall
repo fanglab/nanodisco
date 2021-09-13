@@ -33,6 +33,11 @@ cd nanopolish-0.13.3
 # sed -i -e 's@tar \-xjf $(EIGEN_VERSION).tar.bz2@tar \-xjf eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
 # sed -i -e 's@mv eigen\-eigen\-\* eigen@mv eigen\-$(EIGEN_VERSION) eigen@g' Makefile
 
+# Unable vbz reading for nanopolish from https://github.com/jts/nanopolish/issues/932
+wget https://github.com/nanoporetech/vbz_compression/releases/download/v1.0.1/ont-vbz-hdf-plugin-1.0.1-Linux-x86_64.tar.gz
+tar -xzf ont-vbz-hdf-plugin-1.0.1-Linux-x86_64.tar.gz
+export HDF5_PLUGIN_PATH=/nanopolish-0.13.3/ont-vbz-hdf-plugin-1.0.1-Linux/usr/local/hdf5/lib/plugin/libvbz_hdf_plugin.so
+
 # Resume Nanopolish install
 make
 cp nanopolish /usr/bin/nanopolish
