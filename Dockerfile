@@ -5,7 +5,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
       "vim=2:8.1.2269-1ubuntu5" \
-      "git=1:2.25.1-1ubuntu3.1" \
+      "git=1:2.25.1-1ubuntu3.2" \
       "wget=1.20.3-1ubuntu1" \
       "bzip2=1.0.8-2" \
       "parallel=20161222-1.1" \
