@@ -22,6 +22,11 @@ load.libraries.chunk_info <- function(){
 	library(stringr)
 }
 
+print_message <- function(message){
+        # Print message to terminal
+        cat(paste0("[",Sys.time(),"] ",message,".\n"))
+}
+
 check.input.chunk_info <- function(opt){
 	# Check if reference genome file exist.
 	if(is.null(opt$genome)){
