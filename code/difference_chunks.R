@@ -169,5 +169,4 @@ final_stat_data <- foreach(idx_chunk=list_chunks, .combine=rbind) %:% when(handl
 }
 stifle <- file.remove(paste0(path_output,"tmp.",paste(range(list_chunks), collapse="_"),".",sample_name_wga,".fasta")) # . ok because not pattern
 stifle <- file.remove(paste0(path_output,"tmp.",paste(range(list_chunks), collapse="_"),".",sample_name_nat,".fasta"))
-Sys.time()
-
+print_message("Done")
