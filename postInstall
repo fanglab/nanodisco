@@ -36,7 +36,7 @@ cd nanopolish-0.13.3
 # Unable vbz reading for nanopolish from https://github.com/jts/nanopolish/issues/932
 wget https://github.com/nanoporetech/vbz_compression/releases/download/v1.0.1/ont-vbz-hdf-plugin-1.0.1-Linux-x86_64.tar.gz
 tar -xzf ont-vbz-hdf-plugin-1.0.1-Linux-x86_64.tar.gz
-echo 'export HDF5_PLUGIN_PATH=/nanopolish-0.13.3/ont-vbz-hdf-plugin-1.0.1-Linux/usr/local/hdf5/lib/plugin' >> /home/nanodisco/.bashrc
+echo 'export HDF5_PLUGIN_PATH=/nanopolish-0.13.3/ont-vbz-hdf-plugin-1.0.1-Linux/usr/local/hdf5/lib/plugin' >> /home/nanodisco/.bashrc # For sandbox only
 
 # Resume Nanopolish install
 make
