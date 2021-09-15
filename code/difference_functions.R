@@ -74,7 +74,7 @@ check.reference <- function(genome){
 	}else{
 		reverse_complement_genome <- gsub(".fasta",".rev_comp.fasta",genome)
 		if(!file.exists(reverse_complement_genome)){
-			print(paste0("Generating reverse complement for ",genome))
+			print_message(paste0("Generating reverse complement for ",genome))
 			generate.reverse.complement.genome(genome, reverse_complement_genome)
 		}
 		# TODO add check for special characters in references names
@@ -349,10 +349,10 @@ plot.chunk.coverage <- function(detail_chunk_mapping, cov_th, chunk_start=NA, ch
 }
 
 prepare.index <- function(sample_name, path_input, path_output, genome, chunk_size, list_chunks){
-	print(paste0("  Prepare index for ",sample_name,"."))
+	print_message(paste0("  Prepare index for ",sample_name,""))
 
 	#Define subsets of read by genomic mapping position
-	print(paste0("  Extract read mapped on chunks for ",sample_name,"."))
+	print_message(paste0("  Extract read mapped on chunks for ",sample_name,""))
 	bamFile <- paste0(path_input,sample_name,".sorted.bam")
 
 	contigs_chunks <- generate.genome.chunks.information(genome, chunk_size) # Can be long for metagenome; TODO move outside to do only once
@@ -546,7 +546,7 @@ prepare.index <- function(sample_name, path_input, path_output, genome, chunk_si
 	chunks_fast5_info$strand <- mapvalues(chunks_fast5_info$strand, from=c("+","-")[idx_strand_avail], to=c("fwd","rev")[idx_strand_avail])
 
 	# Create index from read name to fast5 file
-	print(paste0("  Link fast5 to fasta for ",sample_name,"."))
+	print_message(paste0("  Link fast5 to fasta for ",sample_name,""))
 	fasta <- readDNAStringSet(paste0(path_input,sample_name,".fasta"))
 	index_fast5ToFasta <- do.call(rbind,strsplit(names(fasta)," "))[,c(1,2,3)]
 	colnames(index_fast5ToFasta) <- c("read_name","read_id","fast5_path")
@@ -579,11 +579,11 @@ handle.empty.chunk <- function(idx_chunk, index_wga, index_nat, sample_name_wga,
 
 	if(!idx_chunk %in% wga_chunk_with_data | !idx_chunk %in% nat_chunk_with_data){
 		if(!idx_chunk %in% wga_chunk_with_data & idx_chunk %in% nat_chunk_with_data){
-			print(paste0("No mapped reads for ",sample_name_wga," chunk #",idx_chunk))
+			print_message(paste0("No mapped reads for ",sample_name_wga," chunk #",idx_chunk))
 		}else if(idx_chunk %in% wga_chunk_with_data & !idx_chunk %in% nat_chunk_with_data){
-			print(paste0("No mapped reads for ",sample_name_nat," chunk #",idx_chunk))
+			print_message(paste0("No mapped reads for ",sample_name_nat," chunk #",idx_chunk))
 		}else{
-			print(paste0("No mapped reads for ",sample_name_wga," & ",sample_name_nat," chunk #",idx_chunk))
+			print_message(paste0("No mapped reads for ",sample_name_wga," & ",sample_name_nat," chunk #",idx_chunk))
 		}
 
 		# Create empty stat file to keep track of processed chunks
@@ -596,7 +596,7 @@ handle.empty.chunk <- function(idx_chunk, index_wga, index_nat, sample_name_wga,
 }
 
 prepare.input.data <- function(index_sample, idx_chunk, path_output, sample_name, processed_reads, corr_type, nb_threads){
-	print(paste0("  Preparing ",sample_name," input data for chunk #",idx_chunk))
+	print_message(paste0("  Preparing ",sample_name," input data for chunk #",idx_chunk))
 	reads_chunk <- subset(index_sample[["chunk"]], chunk_id==idx_chunk)
 	read_name_toProcess <- as.character(subset(reads_chunk, ! qname %in% processed_reads)$qname)
 	read_name_toKeep <- as.character(subset(reads_chunk, qname %in% processed_reads)$qname)
@@ -661,7 +661,7 @@ correct.event.data <- function(path_output, idx_chunk, sample_name, genome, chun
 	while(is.null(res)){
 		attempt <- attempt + 1
 		if(attempt > 2){
-			print(paste0("  Chunk #",idx_chunk," not processed."))
+			print_message(paste0("  Chunk #",idx_chunk," not processed"))
 			clean.temporary.files(path_output, idx_chunk)
 
 			stop("Correction failed.")
@@ -671,13 +671,13 @@ correct.event.data <- function(path_output, idx_chunk, sample_name, genome, chun
 				system(paste0(path_script,"realign_events.sh ",genome," ",path_fasta," ",nb_threads," ",idx_chunk," ",sig_norm," ",map_type), intern=TRUE, ignore.stderr=TRUE)
 			}, warning = function(w) {
 				print(w)
-				print(paste0("  Failed correction: ",idx_chunk))
+				print_message(paste0("  Failed correction: ",idx_chunk))
 				error.handling(as.integer(gsub("status ","",str_match(w$message, "status [0-9]+")[1,1])))
 
 				return(NULL)
 			}, error = function(e) {
 				print(e)
-				print(paste0("  Failed correction: ",idx_chunk))
+				print_message(paste0("  Failed correction: ",idx_chunk))
 
 				return(NULL)
 			})
@@ -1065,7 +1065,7 @@ compute.statistic <- function(corrected_data, idx_chunk, chunk_size, sample_name
 					gc()
 					chunk_stat_data <- ddply(chunk_corrected_data, .(position, dir), scoring.position, inSilico=inSilico, inSilico_model=inSilico_model, min_coverage=min_coverage, .parallel=FALSE)
 				}, error = function(e) {
-					print(paste0("  Failed scoring chunk #",idx_chunk," (e)."))
+					print_message(paste0("  Failed scoring chunk #",idx_chunk," (e)"))
 					print(e)
 					clean.temporary.files(path_output, idx_chunk)
 					stop(e)

@@ -95,17 +95,16 @@ check.reference(genome)
 
 bc_version <- check.basecall.version(path_input, sample_name_nat, sample_name_wga, basecall_version)
 
-Sys.time()
+print_message(paste0("Start analysis of chunk(s) ",min(list_chunks)," to ",max(list_chunks),""))
 index_wga <- prepare.index(sample_name_wga, path_input, path_output, genome, chunk_size, list_chunks) # TODO try to save in hdf5 files
 index_nat <- prepare.index(sample_name_nat, path_input, path_output, genome, chunk_size, list_chunks) # TODO try to save in hdf5 files
 
-Sys.time()
 processed_reads_wga <- ""
 processed_reads_nat <- ""
 corrected_data <- ""
 prev_corrected_data <- ""
 final_stat_data <- foreach(idx_chunk=list_chunks, .combine=rbind) %:% when(handle.empty.chunk(idx_chunk, index_wga, index_nat, sample_name_wga, sample_name_nat, genome, chunk_size, path_output, inSilico, bc_version)) %do% {
-	print(paste0("Processing chunk #",idx_chunk))
+	print_message(paste0("Processing chunk #",idx_chunk))
 	# Create fasta subset
 	reads_wga <- prepare.input.data(index_wga, idx_chunk, path_output, sample_name_wga, processed_reads_wga, corr_type, nb_threads)
 	reads_nat <- prepare.input.data(index_nat, idx_chunk, path_output, sample_name_nat, processed_reads_nat, corr_type, nb_threads)
@@ -158,7 +157,7 @@ final_stat_data <- foreach(idx_chunk=list_chunks, .combine=rbind) %:% when(handl
 
 		return(stat_data)
 	}else{ # If no data for chunk idx_chunk; e.g. Multimapped reads/repeat region/genomic SV
-		print(paste0("  No data for chunk #",idx_chunk))
+		print_message(paste0("  No data for chunk #",idx_chunk))
 		
 		# Create empty stat file to keep track of processed chunks
 		stat_data <- create.empty.stat_data.file(genome, chunk_size, path_output, idx_chunk, inSilico, bc_version)
