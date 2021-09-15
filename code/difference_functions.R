@@ -213,13 +213,13 @@ error.handling <- function(error_id){
 	if(error_id==1){
 		# TODO Handle by R
 	}else if(error_id==2){
-		print("     A reference fasta file is missing.") # TODO handle by R chartr("ATGC","TACG",s)
+		print_message("     A reference fasta file is missing") # TODO handle by R chartr("ATGC","TACG",s)
 	}
 }
 
 # Processing
 clean.temporary.files <- function(path_output, idx_chunk){
-	print("  Remove temporary files.")
+	print_message("  Remove temporary files")
 	# Remove temp dirs
 	# list_directories <- list.dirs()
 	# unlink(list_directories[grep(paste0("tmp.",idx_chunk), list_directories)], recursive=TRUE)
@@ -631,7 +631,7 @@ prepare.input.data <- function(index_sample, idx_chunk, path_output, sample_name
 }
 
 correct.data <- function(corr_type, path_output, idx_chunk, sample_name_wga, sample_name_nat, genome, chunk_size, path_script, nb_threads, sig_norm, map_type){
-	print("  Correcting mapping.")
+	print_message("  Correcting mapping")
 
 	if(corr_type=="nanopolish"){
 		corrected_wga <- correct.event.data(path_output, idx_chunk, sample_name_wga, genome, chunk_size, path_script, nb_threads, sig_norm, map_type) #np normalized
@@ -822,13 +822,13 @@ normalize.data.serial <- function(corrected_data, name_mean_col, idx_chunk, t_mo
 
 				return(corrected_data)
 			}else{
-				print("Unexpected warning.")
+				print_message("Unexpected warning")
 
 				return(corrected_data) # Will break next step
 			}
 		}, error=function(e) {
 			print(e)
-			print("Unexpected error.")
+			print_message("Unexpected error")
 
 			return(corrected_data) # Will break next step
 		}
@@ -874,19 +874,19 @@ normalize.data.parallel <- function(corrected_data, name_mean_col, idx_chunk, t_
 
 					return(corrected_data)
 				}else{
-					print("Unexpected warning.")
+					print_message("Unexpected warning")
 
 					return(corrected_data) # Will break next step
 				}
 			}, error=function(e) {
-				print("Unexpected error.")
+				print_message("Unexpected error")
 
 				return(corrected_data) # Will break next step
 			})
 
 			return(corrected_data)
 		}else{
-			# print("Too large for preschedule.")
+			# print_message("Too large for preschedule")
 			opts <- list(.options.multicore=list(preschedule=FALSE))
 			corrected_data <- ddply(corrected_data, .(read_name), ont.normalize, name_mean_col=name_mean_col, t_model=t_model, normalized=normalized, .parallel=TRUE, .paropts=opts)
 		
@@ -900,7 +900,7 @@ normalize.data.parallel <- function(corrected_data, name_mean_col, idx_chunk, t_
 
 			return(corrected_data)
 		}else{
-			print("Unexpected error.")
+			print_message("Unexpected error")
 
 			return(corrected_data) # Will break next step
 		}
@@ -911,7 +911,7 @@ normalize.data.parallel <- function(corrected_data, name_mean_col, idx_chunk, t_
 }
 
 normalize.data <- function(corrected_data, name_mean_col, idx_chunk, nb_threads, t_model, normalized){
-	print("  Normalization.")
+	print_message("  Normalization")
 
 	gc()
 	if(nb_threads>1){
@@ -924,7 +924,7 @@ normalize.data <- function(corrected_data, name_mean_col, idx_chunk, nb_threads,
 }
 
 remove.outlier <- function(corrected_data, idx_chunk, chunk_size, genome, IQR_factor){
-	print("  Removing potential outliers.")
+	print_message("  Removing potential outliers")
 	contigs_chunks <- generate.genome.chunks.information(genome, chunk_size)
 	chunk_contig_name <- as.character(subset(contigs_chunks, chunk_id==idx_chunk)$contig_name)
 	chunk_start <- subset(contigs_chunks, chunk_id==idx_chunk)$start
@@ -1032,7 +1032,7 @@ generate.kmer <- function(s_seq, kmer_len){
 }
 
 compute.statistic <- function(corrected_data, idx_chunk, chunk_size, sample_name_wga, sample_name_nat, path_output, reads_toSave, nb_threads, genome, inSilico, inSilico_model, min_coverage, bc_version=NA){
-	print("  Computing stats by genomic position.")
+	print_message("  Computing stats by genomic position")
 	contigs_chunks <- generate.genome.chunks.information(genome, chunk_size)
 	chunk_contig_name <- as.character(subset(contigs_chunks, chunk_id==idx_chunk)$contig_name)
 	chunk_start <- subset(contigs_chunks, chunk_id==idx_chunk)$start
