@@ -55,12 +55,12 @@ For more information, please consult https://github.com/fanglab/nanodisco
     # Set default behavior
     cat > /.singularity.d/env/99-custom.sh <<EOF
 export PS1="\[\033[36m\]\u\[\033[m\]@\[\033[32m\]nanodisco:\[\033[33;1m\]\w\[\033[m\]$ "
+export HDF5_PLUGIN_PATH=/nanopolish-0.13.3/ont-vbz-hdf-plugin-1.0.1-Linux/usr/local/hdf5/lib/plugin
 SINGULARITY_SHELL=/bin/bash
 EOF
 
 %environment
     export HOME=/home/nanodisco
-    export HDF5_PLUGIN_PATH=/nanopolish-0.13.3/ont-vbz-hdf-plugin-1.0.1-Linux/usr/local/hdf5/lib/plugin
 
 %runscript
     cd /home/nanodisco
