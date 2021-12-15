@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export HDF5_PLUGIN_PATH=/nanopolish-0.13.3/ont-vbz-hdf-plugin-1.0.1-Linux/usr/local/hdf5/lib/plugin
+
 function check_ref_fasta (){
   ref_fasta=$1
 
