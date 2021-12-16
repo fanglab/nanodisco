@@ -100,12 +100,12 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('doMC', version='1.3.7', upgrade='never'); \
     devtools::install_version('foreach', version='1.5.1', upgrade='never'); \
     devtools::install_version('iterators', version='1.0.13', upgrade='never'); \
-    BiocManager::install('GenomicRanges', version='3.13', update=FALSE); \
-    BiocManager::install('Rsamtools', version='3.13', update=FALSE); \
+    BiocManager::install('GenomicRanges', version='3.14', update=FALSE); \
+    BiocManager::install('Rsamtools', version='3.14', update=FALSE); \
     devtools::install_version('pillar', version='1.6.2', upgrade='never'); \
     devtools::install_version('bindrcpp', version='0.2.2', upgrade='never'); \
     devtools::install_version('dplyr', version='1.0.7', upgrade='never'); \
-    BiocManager::install('GenomicAlignments', version='3.13', update=FALSE); \
+    BiocManager::install('GenomicAlignments', version='3.14', update=FALSE); \
     devtools::install_version('plyr', version='1.8.6', upgrade='never'); \
     devtools::install_version('MASS', version='7.3-54', upgrade='never'); \
     devtools::install_version('tidyr', version='1.1.3', upgrade='never'); \
@@ -145,9 +145,9 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('klaR', version='0.6-15', upgrade='never'); \
     devtools::install_version('caret', version='6.0-88', upgrade='never'); \
     devtools::install_version('XML', version='3.99-0.7', upgrade='never'); \
-    BiocManager::install('rhdf5', version='3.13', update=FALSE); \
-    BiocManager::install('BSgenome', version='3.13', update=FALSE); \
-    BiocManager::install('rtracklayer', version='3.13', update=FALSE); \
+    BiocManager::install('rhdf5', version='3.14', update=FALSE); \
+    BiocManager::install('BSgenome', version='3.14', update=FALSE); \
+    BiocManager::install('rtracklayer', version='3.14', update=FALSE); \
     devtools::install_version('progress', version='1.2.2', upgrade='never'); \
     devtools::install_version('dbscan', version='1.1-8', upgrade='never'); \
 "
@@ -191,27 +191,3 @@ cp /bedtools2/bin/bedtools /usr/bin/bedtools
 
 cd ..
 
-# apt-get installed version from Dockerfile
-# "vim" \                    # 2:8.1.2269-1ubuntu5
-# "git" \                    # 1:2.25.1-1ubuntu3.1
-# "wget" \                   # 1.20.3-1ubuntu1
-# "bzip2" \                  # 1.0.8-2
-# "parallel" \               # 20161222-1.1
-# "python" \                 # 2.7.18
-# "ghostscript" \            # 9.50~dfsg-5ubuntu4.2
-# "libcurl4-openssl-dev" \   # 7.68.0-1ubuntu2.6
-# "libssl-dev" \             # 1.1.1f-1ubuntu2.8
-# "libxml2-dev" \            # 2.9.10+dfsg-5ubuntu0.20.04.1
-# "libxslt1-dev" \           # 1.1.34-4
-# "zlib1g-dev" \             # 1:1.2.11.dfsg-2ubuntu1.2
-# "libncurses5-dev" \        # 6.2-0ubuntu2
-# "libncursesw5-dev" \       # 6.2-0ubuntu2
-# "libexpat1-dev" \          # 2.2.9-1build1
-# "libjson-perl" \           # 4.02000-2
-# "libhtml-tree-perl"        # 5.07-2
-# "libbz2-dev" \             # 1.0.8-2
-# "liblzma-dev"              # 5.2.4-1ubuntu1
-# "openmpi-bin" \            # 4.0.3-0ubuntu1
-# "libopenmpi-dev" \         # 4.0.3-0ubuntu1
-# "openssh-client" \         # 1:8.2p1-4ubuntu0.3
-# "openssh-server" \         # 1:8.2p1-4ubuntu0.3
