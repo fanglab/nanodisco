@@ -3,6 +3,8 @@
 # /home/nanodisco/code/extract.R -i dataset/EC_WGA -o analysis/preprocessed_subset -b EC_WGA -p 40 -c 5000 -s fa
 # /home/nanodisco/code/extract.R -i dataset/EC_NAT -o analysis/preprocessed_subset -b EC_NAT -p 40 -c 5000 -s fa
 
+options(progressr.enable=TRUE)
+
 load.libraries.extract <- function(){
 	library("rhdf5")
 	library("foreach")
@@ -312,7 +314,7 @@ option_list <- list(
 	make_option(c("-b", "--base_name"), type="character", default=NULL, help="Sequence file output name (<base_name>.<seq_type>)", metavar="<name>"),
 	make_option(c("-p", "--nb_threads"), type="integer", default=1, help="Number of threads (default is 1)", metavar="<integer>"),
 	make_option(c("-s", "--seq_type"), type="character", default=NULL, help="Type of sequence to extract, fastq/fa or fastq/fq", metavar="<fq/fa/fastq/fasta>"),
-	make_option(c("-c", "--nb_chunks"), type="integer", default=40, help="Number of reads per chunks (default is 40; if single-fast5s then best nb_chunks >= nb_threads, if multi-fast5 then best nb_chunks == nb_threads)", metavar="<integer>"),
+	make_option(c("-c", "--nb_chunks"), type="integer", default=1, help="Number of reads per chunks (default is 1; if single-fast5s then best nb_chunks >= nb_threads, if multi-fast5 then best nb_chunks < nb_threads)", metavar="<integer>"),
 	make_option(c("--basecall_version"), type="character", default="default", help="Basecalling version (when multiple ones available)", metavar="<basecaller:version>")
 )
 
