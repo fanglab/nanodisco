@@ -29,8 +29,8 @@ For more information, please consult https://github.com/fanglab/nanodisco
       "liblzma-dev=5.2.4-1ubuntu1" \
       "openmpi-bin=4.0.3-0ubuntu1" \
       "libopenmpi-dev=4.0.3-0ubuntu1" \
-      "openssh-client=1:8.2p1-4ubuntu0.3" \
-      "openssh-server=1:8.2p1-4ubuntu0.3" \
+      "openssh-client=1:8.2p1-4ubuntu0.4" \
+      "openssh-server=1:8.2p1-4ubuntu0.4" \
     && rm -rf /var/lib/apt/lists/*
 
     # Prepare for devtools dependencies
