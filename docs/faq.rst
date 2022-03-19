@@ -68,3 +68,8 @@ FAQ
 
 * Q13: How to best use an HPC infrastructure?
      For users with access to an HPC infrastructure, we recommend to use the job scheduler instead of relying on the built-in parallel approach. A loop can be used to generate all chunk start/end combinations (e.g. 1 to 5, then 6 to 10, etc.) for which a single job can be spawned by updating `-f` and `-l` (e.g. `-nj 1 -p 5 -nc 5 -f 1 -l 5`). This would makes resource management easier, and allows for a better use of available HPC computing power.
+
+.. _q_demux:
+
+* Q14: How to process multiplexed datasets with ``nanodisco``?
+     The demultiplexing of fast5 reads can be performed during basecalling with Guppy using the following options: ``--barcode_kits <kit_ID> --trim_barcodes --fast5_out`` (see Guppy help for more information). The command will output demultiplexed fast5 files containing the basecalling information necessary for nanodisco analysis. The fast5 files are reorganized based on detected barcodes, and saved in the output directory as follows: ``<output_directory>/workspace/fast5_pass/barcode<id>``. Demultiplexed fast5 directories can be processed individually using the following ``nanodisco`` preprocessing command: ``nanodisco preprocess -p <nb_threads> -f <output_directory>/workspace/fast5_pass/barcode<id> -s <sample_name> -o <output_directory> -r <reference_genome>`` (see `here <https://nanodisco.readthedocs.io/en/latest/detailed_tutorial_content.html#preprocessing-fast5-datasets>`_ for more information). 
