@@ -22,7 +22,7 @@ For more information, please consult https://github.com/fanglab/nanodisco
       "zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.2" \
       "libncurses5-dev=6.2-0ubuntu2" \
       "libncursesw5-dev=6.2-0ubuntu2" \
-      "libexpat1-dev=2.2.9-1build1" \
+      "libexpat1-dev=2.2.9-1ubuntu0.4" \
       "libjson-perl=4.02000-2" \
       "libhtml-tree-perl=5.07-2" \
       "libbz2-dev=1.0.8-2" \
