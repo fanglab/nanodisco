@@ -8,16 +8,16 @@ For more information, please consult https://github.com/fanglab/nanodisco
 %post
     # Install basic dependencies
     apt-get update && apt-get install -y --no-install-recommends \
-      "vim=2:8.1.2269-1ubuntu5.4" \
+      "vim=2:8.1.2269-1ubuntu5.7" \
       "git=1:2.25.1-1ubuntu3.2" \
       "wget=1.20.3-1ubuntu1" \
       "bzip2=1.0.8-2" \
       "parallel=20161222-1.1" \
       "python" \
-      "ghostscript=9.50~dfsg-5ubuntu4.4" \
+      "ghostscript=9.50~dfsg-5ubuntu4.5" \
       "libcurl4-openssl-dev=7.68.0-1ubuntu2.7" \
-      "libssl-dev=1.1.1f-1ubuntu2.8" \
-      "libxml2-dev=2.9.10+dfsg-5ubuntu0.20.04.1" \
+      "libssl-dev=1.1.1f-1ubuntu2.12" \
+      "libxml2-dev=2.9.10+dfsg-5ubuntu0.20.04.2" \
       "libxslt1-dev=1.1.34-4" \
       "zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.2" \
       "libncurses5-dev=6.2-0ubuntu2" \
