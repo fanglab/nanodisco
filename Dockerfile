@@ -4,36 +4,32 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-      "vim=2:8.1.2269-1ubuntu5.4" \
+      "vim=2:8.1.2269-1ubuntu5.7" \
       "git=1:2.25.1-1ubuntu3.2" \
       "wget=1.20.3-1ubuntu1" \
       "bzip2=1.0.8-2" \
       "parallel=20161222-1.1" \
       "python" \
-      "ghostscript=9.50~dfsg-5ubuntu4.4" \
-      "libcurl4-openssl-dev=7.68.0-1ubuntu2.6" \
-      "libssl-dev=1.1.1f-1ubuntu2.8" \
-      "libxml2-dev=2.9.10+dfsg-5ubuntu0.20.04.1" \
+      "ghostscript=9.50~dfsg-5ubuntu4.5" \
+      "libcurl4-openssl-dev=7.68.0-1ubuntu2.7" \
+      "libssl-dev=1.1.1f-1ubuntu2.12" \
+      "libxml2-dev=2.9.10+dfsg-5ubuntu0.20.04.2" \
       "libxslt1-dev=1.1.34-4" \
       "zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.2" \
       "libncurses5-dev=6.2-0ubuntu2" \
       "libncursesw5-dev=6.2-0ubuntu2" \
-      "libexpat1-dev=2.2.9-1build1" \
+      "libexpat1-dev=2.2.9-1ubuntu0.4" \
       "libjson-perl=4.02000-2" \
       "libhtml-tree-perl=5.07-2" \
       "libbz2-dev=1.0.8-2" \
       "liblzma-dev=5.2.4-1ubuntu1" \
       "openmpi-bin=4.0.3-0ubuntu1" \
       "libopenmpi-dev=4.0.3-0ubuntu1" \
-      "openssh-client=1:8.2p1-4ubuntu0.3" \
-      "openssh-server=1:8.2p1-4ubuntu0.3" \
+      "openssh-client=1:8.2p1-4ubuntu0.4" \
+      "openssh-server=1:8.2p1-4ubuntu0.4" \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    "cmake=3.16.3-1ubuntu1" \
-    "libgit2-dev=0.28.4+dfsg.1-2" \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends "cmake=3.16.3-1ubuntu1" "libgit2-dev=0.28.4+dfsg.1-2" && rm -rf /var/lib/apt/lists/*
 
 # Include nanodisco toolbox
 RUN mkdir /home/nanodisco
