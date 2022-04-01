@@ -138,7 +138,7 @@ if [ -z "$basecall_version" ]; then
   basecall_version="default"
 fi
 if [ -z "$nb_chunks" ]; then
-  nb_chunks=40
+  nb_chunks=1
 fi
 
 
