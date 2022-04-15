@@ -499,6 +499,19 @@ Attribute methylation scores to each motif occurrence.
 
 * Methylation score for each occurrence of the supplied motif(s) in a text file (``Motifs_occurrences_scores_<base_name>.tsv``).
 
+.. code-block:: none
+
+   columns:
+     contig          name of contig
+     pos_motif       genomic position of motif start
+     motif           motif sequence (e.g. CCWGG)
+     pos_signal      genomic position of motif start
+     dir             genomic strand, fwd or rev
+     strand          read strand, used when 2D nanopore reads
+     cov_wga         average coverage of the motif in the wga dataset
+     cov_nat         average coverage of the motif in the nat dataset
+     score           maximum of the averaged current differences ([-2, +3])
+
 .. _version:
 
 version
