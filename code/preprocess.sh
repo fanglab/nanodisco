@@ -174,21 +174,21 @@ fi
 # fi
 if [[ ! -f $path_reference_genome".mmi" ]]; then
   print_message "Prepare minimap2 index"
-  minimap2 -x map-ont -d ${path_reference_genome/.fasta/.mmi} $path_reference_genome > $path_output_sample"_log" 2>&1 # Needed for mapping reads
-  check_error "$?" $path_output_sample # Hide bwa index stderr by default and show only if an error is identified
+  minimap2 -x map-ont -d ${path_reference_genome%.*}".mmi" $path_reference_genome > $path_output_sample"_log" 2>&1 # Needed for mapping reads
+  check_error "$?" $path_output_sample # Hide minimap2 index stderr by default and show only if an error is identified
 fi
 
 if [[ ! -f $path_reference_genome".fai" ]]; then
   print_message "Prepare samtools index"
   samtools faidx $path_reference_genome 2> $path_output_sample"_log" # Needed for indexing reads
-  check_error "$?" $path_output_sample # Hide bwa index stderr by default and show only if an error is identified
+  check_error "$?" $path_output_sample # Hide samtools index stderr by default and show only if an error is identified
 fi
 
 ## Map reads on reference
 print_message "Map reads"
 # bwa mem -t $nb_threads -x ont2d $path_reference_genome $path_output_sample".fasta" 2> $path_output_sample"_log" | samtools view -b - | samtools sort -T $path_output_sample"_tmp" > $path_output_sample".sorted.bam"
-minimap2 -ax map-ont -t $nb_threads ${path_reference_genome/.fasta/.mmi} $path_output_sample".fasta" 2> $path_output_sample"_log" | samtools sort -o $path_output_sample".sorted.bam" -T $path_output_sample"_tmp" -
-check_error "$?" $path_output_sample # Hide bwa mem stderr by default and show only if an error is identified
+minimap2 -ax map-ont -t $nb_threads ${path_reference_genome/.fasta/.mmi} $path_output_sample".fasta" 2> $path_output_sample"_log" | samtools sort -o $path_output_sample".sorted.bam" -T $path_output_sample"_tmp" - 2>> $path_output_sample"_log"
+check_error "$?" $path_output_sample # Hide minimap2 stderr by default and show only if an error is identified
 
 ## Index alignment
 print_message "Index alignment"
