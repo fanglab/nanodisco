@@ -94,62 +94,64 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
 
 # Packages for processing
 Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
-    devtools::install_version('data.table', version='1.14.0', upgrade='never'); \
+    devtools::install_version('data.table', version='1.14.2', upgrade='never'); \
     devtools::install_version('stringr', version='1.4.0', upgrade='never'); \
-    devtools::install_version('optparse', version='1.6.6', upgrade='never'); \
-    devtools::install_version('doMC', version='1.3.7', upgrade='never'); \
-    devtools::install_version('foreach', version='1.5.1', upgrade='never'); \
-    devtools::install_version('iterators', version='1.0.13', upgrade='never'); \
+    devtools::install_version('optparse', version='1.7.1', upgrade='never'); \
+    devtools::install_version('doMC', version='1.3.8', upgrade='never'); \
+    devtools::install_version('foreach', version='1.5.2', upgrade='never'); \
+    devtools::install_version('iterators', version='1.0.14', upgrade='never'); \
     BiocManager::install('GenomicRanges', version='3.14', update=FALSE); \
     BiocManager::install('Rsamtools', version='3.14', update=FALSE); \
-    devtools::install_version('pillar', version='1.6.2', upgrade='never'); \
+    devtools::install_version('pillar', version='1.7.0', upgrade='never'); \
     devtools::install_version('bindrcpp', version='0.2.2', upgrade='never'); \
-    devtools::install_version('dplyr', version='1.0.7', upgrade='never'); \
+    devtools::install_version('dplyr', version='1.0.9', upgrade='never'); \
     BiocManager::install('GenomicAlignments', version='3.14', update=FALSE); \
-    devtools::install_version('plyr', version='1.8.6', upgrade='never'); \
-    devtools::install_version('MASS', version='7.3-54', upgrade='never'); \
-    devtools::install_version('tidyr', version='1.1.3', upgrade='never'); \
-    devtools::install_version('doFuture', version='0.12.0', upgrade='never'); \
-    devtools::install_version('progressr', version='0.8.0', upgrade='never'); \
+    devtools::install_version('plyr', version='1.8.7', upgrade='never'); \
+    devtools::install_version('MASS', version='7.3-57', upgrade='never'); \
+    devtools::install_version('tidyr', version='1.2.0', upgrade='never'); \
+    devtools::install_version('doFuture', version='0.12.2', upgrade='never'); \
+    devtools::install_version('progressr', version='0.10.0', upgrade='never'); \
 "
 
 # Packages for analysis
 Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('seqinr', version='4.2-8', upgrade='never'); \
     devtools::install_version('gtable', version='0.3.0', upgrade='never'); \
-    devtools::install_version('scales', version='1.1.1', upgrade='never'); \
-    devtools::install_version('ggplot2', version='3.3.5', upgrade='never'); \
+    devtools::install_version('scales', version='1.2.0', upgrade='never'); \
+    devtools::install_version('ggplot2', version='3.3.6', upgrade='never'); \
     devtools::install_version('egg', version='0.4.5', upgrade='never'); \
-    devtools::install_version('RColorBrewer', version='1.1-2', upgrade='never'); \
-    devtools::install_version('zoo', version='1.8-9', upgrade='never'); \
+    devtools::install_version('RColorBrewer', version='1.1-3', upgrade='never'); \
+    devtools::install_version('zoo', version='1.8-10', upgrade='never'); \
+	BiocManager::install('multtest', version='3.14', upgrade='never'); \
+	devtools::install_version('qqconf', version='1.2.3', upgrade='never'); \
     devtools::install_version('metap', version='1.8', upgrade='never'); \
-    devtools::install_version('reshape', version='0.8.8', upgrade='never'); \
+    devtools::install_version('reshape', version='0.8.9', upgrade='never'); \
     devtools::install_version('pROC', version='1.18.0', upgrade='never'); \
-    devtools::install_version('ggdendro', version='0.1.22', upgrade='never'); \
-    devtools::install_version('kernlab', version='0.9-29', upgrade='never'); \
-    devtools::install_version('mclust', version='5.4.7', upgrade='never'); \
+    devtools::install_version('ggdendro', version='0.1.23', upgrade='never'); \
+    devtools::install_version('kernlab', version='0.9-30', upgrade='never'); \
+    devtools::install_version('mclust', version='5.4.9', upgrade='never'); \
     devtools::install_version('trimcluster', version='0.1-5', upgrade='never'); \
     devtools::install_version('fpc', version='2.2-9', upgrade='never'); \
-    devtools::install_version('dendextend', version='1.15.1', upgrade='never'); \
+    devtools::install_version('dendextend', version='1.15.2', upgrade='never'); \
     devtools::install_version('ggseqlogo', version='0.1', upgrade='never'); \
     devtools::install_version('gtools', version='3.9.2', upgrade='never'); \
     devtools::install_version('ggbeeswarm', version='0.6.0', upgrade='never'); \
     devtools::install_version('hues', version='0.2.0', upgrade='never'); \
-    devtools::install_version('Rtsne', version='0.15', upgrade='never'); \
-    devtools::install_version('VGAM', version='1.1-5', upgrade='never'); \
-    devtools::install_version('mda', version='0.5-2', upgrade='never'); \
+    devtools::install_version('Rtsne', version='0.16', upgrade='never'); \
+    devtools::install_version('VGAM', version='1.1-6', upgrade='never'); \
+    devtools::install_version('mda', version='0.5-3', upgrade='never'); \
     devtools::install_version('earth', version='5.3.1', upgrade='never'); \
-    devtools::install_version('e1071', version='1.7-8', upgrade='never'); \
-    devtools::install_version('nnet', version='7.3-16', upgrade='never'); \
-    devtools::install_version('randomForest', version='4.6-14', upgrade='never'); \
-    devtools::install_version('klaR', version='0.6-15', upgrade='never'); \
-    devtools::install_version('caret', version='6.0-88', upgrade='never'); \
-    devtools::install_version('XML', version='3.99-0.7', upgrade='never'); \
+    devtools::install_version('e1071', version='1.7-9', upgrade='never'); \
+    devtools::install_version('nnet', version='7.3-17', upgrade='never'); \
+    devtools::install_version('randomForest', version='4.7-1', upgrade='never'); \
+    devtools::install_version('klaR', version='0.7-0', upgrade='never'); \
+    devtools::install_version('caret', version='6.0-92', upgrade='never'); \
+    devtools::install_version('XML', version='3.99-0.9', upgrade='never'); \
     BiocManager::install('rhdf5', version='3.14', update=FALSE); \
     BiocManager::install('BSgenome', version='3.14', update=FALSE); \
     BiocManager::install('rtracklayer', version='3.14', update=FALSE); \
     devtools::install_version('progress', version='1.2.2', upgrade='never'); \
-    devtools::install_version('dbscan', version='1.1-8', upgrade='never'); \
+    devtools::install_version('dbscan', version='1.1-10', upgrade='never'); \
 "
 
 # Install perl modules for meme
