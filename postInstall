@@ -23,9 +23,9 @@ find /home/nanodisco/code -type f -exec chmod 755 {} \;
 wget -q https://nanodiscodata.s3.us-east-2.amazonaws.com/data_default.tar.gz
 tar -zxf data_default.tar.gz -C /home && rm data_default.tar.gz
 
-# Install Nanopolish version 0.13.3
-git clone --recursive -b v0.13.3 https://github.com/jts/nanopolish.git nanopolish-0.13.3
-cd nanopolish-0.13.3
+# Install Nanopolish version 0.14.0
+git clone --recursive -b v0.14.0 https://github.com/jts/nanopolish.git nanopolish-0.14.0
+cd nanopolish-0.14.0
 
 # Edit Makefile to update dead link
 # sed -i -e 's@\-e $(EIGEN_VERSION).tar.bz2@\-e eigen-$(EIGEN_VERSION).tar.bz2@g' Makefile
@@ -36,7 +36,7 @@ cd nanopolish-0.13.3
 # Unable vbz reading for nanopolish from https://github.com/jts/nanopolish/issues/932
 wget https://github.com/nanoporetech/vbz_compression/releases/download/v1.0.1/ont-vbz-hdf-plugin-1.0.1-Linux-x86_64.tar.gz
 tar -xzf ont-vbz-hdf-plugin-1.0.1-Linux-x86_64.tar.gz
-echo 'export HDF5_PLUGIN_PATH=/nanopolish-0.13.3/ont-vbz-hdf-plugin-1.0.1-Linux/usr/local/hdf5/lib/plugin' >> /home/nanodisco/.bashrc # For sandbox only
+echo 'export HDF5_PLUGIN_PATH=/nanopolish-0.14.0/ont-vbz-hdf-plugin-1.0.1-Linux/usr/local/hdf5/lib/plugin' >> /home/nanodisco/.bashrc # For sandbox only
 
 # Resume Nanopolish install
 make
@@ -62,10 +62,10 @@ cd ..
 
 # cd ..
 
-# Install samtools version 1.13
-wget https://sourceforge.net/projects/samtools/files/samtools/1.13/samtools-1.13.tar.bz2
-tar xf samtools-1.13.tar.bz2 && rm samtools-1.13.tar.bz2
-cd samtools-1.13
+# Install samtools version 1.15.1
+wget https://sourceforge.net/projects/samtools/files/samtools/1.15.1/samtools-1.15.1.tar.bz2
+tar xf samtools-1.15.1.tar.bz2 && rm samtools-1.15.1.tar.bz2
+cd samtools-1.15.1
 make
 cp samtools /usr/bin/samtools 
 
