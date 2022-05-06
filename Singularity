@@ -32,6 +32,7 @@ For more information, please consult https://github.com/fanglab/nanodisco
       "openssh-client=1:8.2p1-4ubuntu0.4" \
       "openssh-server=1:8.2p1-4ubuntu0.4" \
       "pkg-config=0.29.1-0ubuntu4" \
+      "libfftw3-dev=3.3.8-2ubuntu1" \
     && rm -rf /var/lib/apt/lists/*
 
     # Prepare for devtools dependencies
