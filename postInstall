@@ -144,7 +144,7 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('e1071', version='1.7-9', upgrade='never'); \
     devtools::install_version('nnet', version='7.3-17', upgrade='never'); \
     devtools::install_version('randomForest', version='4.7-1', upgrade='never'); \
-    devtools::install_version('klaR', version='0.7-0', upgrade='never'); \
+    devtools::install_version('klaR', version='1.7-0', upgrade='never'); \
     devtools::install_version('caret', version='6.0-92', upgrade='never'); \
     devtools::install_version('XML', version='3.99-0.9', upgrade='never'); \
     BiocManager::install('rhdf5', version='3.14', update=FALSE); \
