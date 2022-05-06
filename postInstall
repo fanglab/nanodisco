@@ -122,7 +122,7 @@ Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
     devtools::install_version('egg', version='0.4.5', upgrade='never'); \
     devtools::install_version('RColorBrewer', version='1.1-2', upgrade='never'); \
     devtools::install_version('zoo', version='1.8-9', upgrade='never'); \
-    devtools::install_version('metap', version='1.4', upgrade='never'); \
+    devtools::install_version('metap', version='1.8', upgrade='never'); \
     devtools::install_version('reshape', version='0.8.8', upgrade='never'); \
     devtools::install_version('pROC', version='1.18.0', upgrade='never'); \
     devtools::install_version('ggdendro', version='0.1.22', upgrade='never'); \
