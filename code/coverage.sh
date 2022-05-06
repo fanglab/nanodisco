@@ -93,4 +93,4 @@ else
   mkdir -p $path_output
 fi
 
-bedtools genomecov -ibam $path_mapping -g $metagenome > $path_coverage
+bedtools genomecov -ibam $path_mapping > $path_coverage # -g $metagenome
