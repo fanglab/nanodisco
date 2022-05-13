@@ -48,7 +48,7 @@ print_message("Prepare default metagenome annotation")
 
 # Load metagenome information
 metagenome_annotation <- readDNAStringSet(metagenome)
-metagenome_annotation <- data.frame(contig=names(metagenome_annotation), length=width(metagenome_annotation), id=NA) # Simple metagenome contig annotation
+metagenome_annotation <- data.frame(contig=names(metagenome_annotation), length=width(metagenome_annotation), id=NA, stringsAsFactors=TRUE) # Simple metagenome contig annotation
 
 # Load methylation binning results
 methylation_binning <- readRDS(path_methylation_binning)
@@ -59,7 +59,7 @@ if(is.null(path_annotation)){
 		print_message("Detection of potential bins")
 
 		methylation_binning_annotated <- find.tsne.clusters(methylation_binning, param_dbscan[["set_eps"]], param_dbscan[["set_minPts"]])
-		binning_annotation <- data.frame(contig=methylation_binning_annotated$contig, id=methylation_binning_annotated$id)
+		binning_annotation <- data.frame(contig=methylation_binning_annotated$contig, id=methylation_binning_annotated$id, stringsAsFactors=TRUE)
 	}else{
 		# No annotation provided
 		binning_annotation <- metagenome_annotation
