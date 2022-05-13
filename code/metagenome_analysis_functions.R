@@ -493,7 +493,7 @@ prepare.metagenome.info <- function(path_metagenome){
 }
 
 process.coverage <- function(input_coverage){
-	data_cov <- read.table(input_coverage, header=F)
+	data_cov <- read.table(input_coverage, header=FALSE, stringsAsFactors=TRUE)
 	colnames(data_cov) <- c("chr","depth","nb_pos","chrom_size","frac")
 	data_cov <- subset(data_cov, chr!="genome") # Remove global coverage "genome"
 
@@ -516,7 +516,7 @@ prepare.contig.annotation <- function(input_coverage, contig_clustering, bin_ann
 }
 
 prepare.contig.clustering <- function(metagenome_info, path_clustering){
-	contig_clustering <- read.table(path_clustering, header=TRUE)
+	contig_clustering <- read.table(path_clustering, header=TRUE, stringsAsFactors=TRUE)
 	contig_clustering <- merge(metagenome_info, contig_clustering, by="contig_name", suffixes=c(".ONT",".PacBio"), all.x=TRUE)
 
 	return(contig_clustering)
