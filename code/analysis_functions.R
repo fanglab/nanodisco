@@ -1265,7 +1265,7 @@ read.meme.output <- function(meme_output_xml){
 	motifs_nbhits <- motifs_info %>% xml_attr("sites") %>% as.integer()
 	motifs_evalue <- motifs_info %>% xml_attr("e_value") %>% as.numeric()
 	motifs_llr <- motifs_info %>% xml_attr("llr") %>% as.integer()
-	motifs_info <- data.frame(motifs, motifs_length, motifs_nbhits, motifs_evalue, motifs_llr)
+	motifs_info <- data.frame(motifs, motifs_length, motifs_nbhits, motifs_evalue, motifs_llr, stringsAsFactors=TRUE)
 
 	# Probabilities
 	motifs_prob_detail <- motif_data %>% xml_find_all("motifs//probabilities") # or motifs//scores
