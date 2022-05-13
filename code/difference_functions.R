@@ -261,7 +261,7 @@ relative.path <- function(x, y){
 }
 
 generate.genome.chunks.information <- function(genome, chunk_size){
-	genome_index <- read.table(gsub(".fasta",".fasta.fai",genome),stringsAsFactors=FALSE)
+	genome_index <- read.table(gsub(".fasta",".fasta.fai",genome), stringsAsFactors=FALSE)
 	list_contig_names <- genome_index[,1]
 
 	# Define chunks id across contigs
