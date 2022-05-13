@@ -1682,7 +1682,7 @@ refine.motif <- function(potential_motif, discovered_motifs, final_stat_data, ge
 			geom_violin(aes(x=distance, y=mean_diff, group=distance), alpha=0.6) + # Throw warning if < one motif per strand|dir
 			geom_hline(yintercept=0, col="red") +
 			facet_grid(mutation_type~pos_mutation) +
-			scale_fill_gradientn(colours=myPalette(100), guide=FALSE) +
+			scale_fill_gradientn(colours=myPalette(100), guide="none") +
 			labs(title=paste0("Refinement plot for ",compound_name," motifs")) +
 			labs(y="Mean current differences (pA)") +
 			coord_cartesian(xlim=c(xmin_value-0.5, xmax_value+0.5), ylim=c(ymin_value, ymax_value), expand=FALSE) +
