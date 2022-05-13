@@ -15,7 +15,7 @@ For more information, please consult https://github.com/fanglab/nanodisco
       "parallel=20161222-1.1" \
       "python" \
       "ghostscript=9.50~dfsg-5ubuntu4.5" \
-      "libcurl4-openssl-dev=7.68.0-1ubuntu2.10" \
+      "libcurl4-openssl-dev=7.68.0-1ubuntu2.11" \
       "libssl-dev=1.1.1f-1ubuntu2.13" \
       "libxml2-dev=2.9.10+dfsg-5ubuntu0.20.04.2" \
       "libxslt1-dev=1.1.34-4" \
@@ -29,8 +29,8 @@ For more information, please consult https://github.com/fanglab/nanodisco
       "liblzma-dev=5.2.4-1ubuntu1.1" \
       "openmpi-bin=4.0.3-0ubuntu1" \
       "libopenmpi-dev=4.0.3-0ubuntu1" \
-      "openssh-client=1:8.2p1-4ubuntu0.4" \
-      "openssh-server=1:8.2p1-4ubuntu0.4" \
+      "openssh-client=1:8.2p1-4ubuntu0.5" \
+      "openssh-server=1:8.2p1-4ubuntu0.5" \
       "pkg-config=0.29.1-0ubuntu4" \
       "libfftw3-dev=3.3.8-2ubuntu1" \
     && rm -rf /var/lib/apt/lists/*
