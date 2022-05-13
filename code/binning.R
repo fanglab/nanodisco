@@ -49,7 +49,7 @@ print_message("Prepare default metagenome annotation")
 
 # Prepare default metagenome annotation
 metagenome_annotation <- readDNAStringSet(metagenome)
-metagenome_annotation <- data.frame(contig=names(metagenome_annotation), length=width(metagenome_annotation), id=NA) # Simple metagenome contig annotation
+metagenome_annotation <- data.frame(contig=names(metagenome_annotation), length=width(metagenome_annotation), id=NA, stringsAsFactors=TRUE) # Simple metagenome contig annotation
 
 print_message("Load supplied methylation profile matrix")
 
