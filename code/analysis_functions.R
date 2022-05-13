@@ -380,7 +380,8 @@ seq_params <- list(fwd_llen=5, fwd_rlen=16, rev_llen=10, rev_rlen=11)
 iupac_nc <- data.frame(
 	code=c("A","C","G","T","R","Y","S","W","K","M","B","D","H","V","N"),
 	pattern=c("A","C","G","T","[AG]","[CT]","[CG]","[AT]","[GT]","[AC]","[CGT]","[AGT]","[ACT]","[ACG]","[ACGT]"),
-	choice=c("A","C","G","T","AG","CT","CG","AT","GT","AC","CGT","ATG","ACT","ACG","ACGT")
+	choice=c("A","C","G","T","AG","CT","CG","AT","GT","AC","CGT","ATG","ACT","ACG","ACGT"),
+	stringsAsFactors=TRUE
 ) # [^] do not rev.comp easily
 
 #   _                     _ _                   _       _        
@@ -487,7 +488,9 @@ check.missing.values <- function(stat_data){
 
 		res <- data.frame(
 			fwd_expected_len=fwd_expected_len, fwd_measured_len=fwd_measured_len,
-			rev_expected_len=rev_expected_len, rev_measured_len=rev_measured_len)
+			rev_expected_len=rev_expected_len, rev_measured_len=rev_measured_len,
+			stringsAsFactors=TRUE
+		)
 
 		return(res)
 	}
@@ -547,7 +550,7 @@ find.isolated.motifs.sub <- function(motif_summary, idx_motif, direction, g_seq,
 	tmp_motif_matches <- vmatchPattern(motif, g_seq, fixed=FALSE)
 	tmp_motif_matches <- hide.ambiguous.matches(gr_ambiguous_position, tmp_motif_matches, direction)
 
-	motif_matches <- data.frame(contig_name=seqnames(tmp_motif_matches), contig_pos_motif=start(tmp_motif_matches) + (mod_pos - 1)) # Mark mod_pos
+	motif_matches <- data.frame(contig_name=seqnames(tmp_motif_matches), contig_pos_motif=start(tmp_motif_matches) + (mod_pos - 1), stringsAsFactors=TRUE) # Mark mod_pos
 	if(nrow(motif_matches)>0){
 		motif_matches$motif <- as.factor(as.character(original_motif)) # Add motif
 	}
@@ -646,7 +649,8 @@ extract.motifs.signature <- function(methylation_signal, genome, motif_summary, 
 		strand=methylation_signal$strand[overlaps_motifs_methylation@to],
 		N_wga=methylation_signal$N_wga[overlaps_motifs_methylation@to],
 		N_nat=methylation_signal$N_nat[overlaps_motifs_methylation@to],
-		mean_diff=methylation_signal$mean_diff[overlaps_motifs_methylation@to]
+		mean_diff=methylation_signal$mean_diff[overlaps_motifs_methylation@to],
+		stringsAsFactors=TRUE
 	)
 
 	methylation_at_motifs <- methylation_at_motifs %>% 
@@ -859,14 +863,14 @@ rollingFunction <- function(sample_data, win_size, stat_val, smooth_func){
 		genomic_position <- sample_data$position
 		genomic_position_range <- seq(min(genomic_position),max(genomic_position))
 
-		gapped_dataset <- data.frame(genomic_position=genomic_position, p_values=p_values)
-		filled_dataset <- data.frame(genomic_position=genomic_position_range, p_values=with(gapped_dataset, p_values[match(genomic_position_range, genomic_position)]))
+		gapped_dataset <- data.frame(genomic_position=genomic_position, p_values=p_values, stringsAsFactors=TRUE)
+		filled_dataset <- data.frame(genomic_position=genomic_position_range, p_values=with(gapped_dataset, p_values[match(genomic_position_range, genomic_position)]), stringsAsFactors=TRUE)
 
 		# TODO could try na.approx() or na.spline()
 		stat_dataserie <- zoo(filled_dataset$p_values, order.by=filled_dataset$genomic_position)
 		res <- rollapply(stat_dataserie, width=win_size, by=1, FUN=get(smooth_func), align="center") # sumlog return 0 if out of range ~>9.881313e-324
 
-		res <- as.data.frame(res)
+		res <- as.data.frame(res, stringsAsFactors=TRUE)
 		res$position <- as.numeric(rownames(res))
 		colnames(res) <- c("p", "position")
 	}
@@ -938,9 +942,9 @@ draw.local.signal <- function(base_name, final_stat_data, motif_summary, param_l
 	comp_sequence <- as.character(comp_sequence)
 	len_seq <- end-start+1
 
-	label_fwd <- data.frame(seq(start,end),strsplit(sequence,split="")[[1]],rep("fwd",len_seq))
+	label_fwd <- data.frame(seq(start,end), strsplit(sequence,split="")[[1]], rep("fwd",len_seq), stringsAsFactors=TRUE)
 	colnames(label_fwd) <- c("position","base","dir")
-	label_rev <- data.frame(seq(start,end),strsplit(comp_sequence,split="")[[1]],rep("rev",len_seq))
+	label_rev <- data.frame(seq(start,end), strsplit(comp_sequence,split="")[[1]], rep("rev",len_seq), stringsAsFactors=TRUE)
 	colnames(label_rev) <- c("position","base","dir")
 
 	labels <- rbind(label_fwd,label_rev)
@@ -1033,7 +1037,7 @@ explore.winParams.motif.detection <- function(genome, final_stat_data, iupac_nc,
 	dir_seq_isolated_motif <- foreach(direction=c("fwd","rev"), .combine=rbind) %do% {
 		sample_data <- subset(marked_final_stat_data, col_motif!=0 & dir==direction)
 		list_DNA_mod <- sample_data$col_motif
-		list_DNA_mod_param <- data.frame(pos=sample_data$position)
+		list_DNA_mod_param <- data.frame(pos=sample_data$position, stringsAsFactors=TRUE)
 		list_DNA_mod_param$llen <- 0
 		list_DNA_mod_param$rlen <- 0
 		if(direction=="fwd"){
@@ -1060,9 +1064,9 @@ explore.winParams.motif.detection <- function(genome, final_stat_data, iupac_nc,
 
 			list_DNA_mod_pos <- ranges_DNA_mod[detected_DNA_mod]@start + list_DNA_mod_param$llen[detected_DNA_mod]
 			tmp <- subset(marked_final_stat_data, select=c("position","col_motif"), position %in% list_DNA_mod_pos & dir==direction)
-			tmp2 <- merge(data.frame(position_DNA_mod=list_DNA_mod_pos), tmp, by.x="position_DNA_mod",by.y="position")
+			tmp2 <- merge(data.frame(position_DNA_mod=list_DNA_mod_pos, stringsAsFactors=TRUE), tmp, by.x="position_DNA_mod",by.y="position")
 			tmp <- subset(peaks_data, position %in% list_peak_pos[true_peaks])
-			tmp3 <- merge(data.frame(position_peak=list_peak_pos[true_peaks]), tmp, by.x="position_peak",by.y="position")
+			tmp3 <- merge(data.frame(position_peak=list_peak_pos[true_peaks], stringsAsFactors=TRUE), tmp, by.x="position_peak",by.y="position")
 			DNA_mod_stat_data <- cbind(tmp2, tmp3)
 
 			DNA_mod_stat_data$motif[DNA_mod_stat_data$col_motif>0] <- motif_summary$motif[DNA_mod_stat_data$col_motif[DNA_mod_stat_data$col_motif>0]]
@@ -1071,7 +1075,7 @@ explore.winParams.motif.detection <- function(genome, final_stat_data, iupac_nc,
 				group_by(position_peak) %>%
 				summarize(N_motifs=length(motif), motifs=paste(motif, collapse=" "), .groups="drop_last")
 
-			tmp_seq_isolated_motif <- as.data.frame(table(DNA_mod_stat_data$motifs[DNA_mod_stat_data$N_motifs==1]))
+			tmp_seq_isolated_motif <- as.data.frame(table(DNA_mod_stat_data$motifs[DNA_mod_stat_data$N_motifs==1]), stringsAsFactors=TRUE)
 			colnames(tmp_seq_isolated_motif) <- c("motif","freq")
 			tmp_seq_isolated_motif <- merge(motif_summary,tmp_seq_isolated_motif, all.x=TRUE)
 			tmp_seq_isolated_motif$llen <- llen
@@ -1139,7 +1143,7 @@ mark.modified.peaks <- function(peaks_data, annotated_data, seq_params){
 }
 
 scatter.color.density <- function(x, y, group=NA){
-	data <- data.frame(x=x, y=y, group=group) %>%
+	data <- data.frame(x=x, y=y, group=group, stringsAsFactors=TRUE) %>%
 		group_by(group) %>%
 		mutate(cols=densCols(x, y, nbin=1024, colramp=colorRampPalette(rev(rainbow(10, end=4/6)))))
 
@@ -1207,7 +1211,8 @@ extract.peak.sequences <- function(selected_peaks_data, genome, seq_params, outp
 		contig=names(g_seq)[match(selected_peaks_data$contig, list_contig_name)],
 		contig_length=width(g_seq)[match(selected_peaks_data$contig, list_contig_name)],
 		position=selected_peaks_data$position,
-		dir=selected_peaks_data$dir
+		dir=selected_peaks_data$dir,
+		stringsAsFactors=TRUE
 	)
 	# Define genomic range for fasta sequence extraction
 	df_selected_peaks_data <- df_selected_peaks_data %>%
@@ -1264,7 +1269,7 @@ read.meme.output <- function(meme_output_xml){
 	motifs_nbhits <- motifs_info %>% xml_attr("sites") %>% as.integer()
 	motifs_evalue <- motifs_info %>% xml_attr("e_value") %>% as.numeric()
 	motifs_llr <- motifs_info %>% xml_attr("llr") %>% as.integer()
-	motifs_info <- data.frame(motifs, motifs_length, motifs_nbhits, motifs_evalue, motifs_llr)
+	motifs_info <- data.frame(motifs, motifs_length, motifs_nbhits, motifs_evalue, motifs_llr, stringsAsFactors=TRUE)
 
 	# Probabilities
 	motifs_prob_detail <- motif_data %>% xml_find_all("motifs//probabilities") # or motifs//scores
@@ -1272,7 +1277,7 @@ read.meme.output <- function(meme_output_xml){
 		letter_id <- motifs_prob_detail[idx] %>% xml_find_all("descendant::value") %>% xml_attr("letter_id")
 		prob <- motifs_prob_detail[idx] %>% xml_find_all("descendant::value") %>% xml_contents() %>% xml_text() %>% as.numeric() # as.integer() if scores
 
-		return(data.frame(motif=motifs[idx], letter_id=letter_id, prob=prob, pos=rep(seq(1,motifs_length[idx]),each=4)))
+		return(data.frame(motif=motifs[idx], letter_id=letter_id, prob=prob, pos=rep(seq(1,motifs_length[idx]),each=4), stringsAsFactors=TRUE))
 	}
 	motifs_probs_results <- motifs_probs_results[!duplicated(motifs_probs_results),] # Remove duplicated motifs, appended when one motif ~= all matches
 	motifs_probs_results <- motifs_probs_results %>%
@@ -1285,7 +1290,7 @@ read.meme.output <- function(meme_output_xml){
 		letter_id <- motifs_scores_detail[idx] %>% xml_find_all("descendant::value") %>% xml_attr("letter_id")
 		prob <- motifs_scores_detail[idx] %>% xml_find_all("descendant::value") %>% xml_contents() %>% xml_text() %>% as.integer() # as.numeric() if scores
 
-		return(data.frame(motif=motifs[idx], letter_id=letter_id, prob=prob, pos=rep(seq(1,motifs_length[idx]),each=4)))
+		return(data.frame(motif=motifs[idx], letter_id=letter_id, prob=prob, pos=rep(seq(1,motifs_length[idx]),each=4), stringsAsFactors=TRUE))
 	}
 	motifs_scores_results <- motifs_scores_results[!duplicated(motifs_scores_results),] # Remove duplicated motifs, appended when one motif ~= all matches
 	motifs_scores_results <- motifs_scores_results %>%
@@ -1335,7 +1340,7 @@ refine.meme.motif <- function(sig_motif_detail, meme_results, iupac_nc){
 
 	list_pos <- seq(min(tmp_motif$pos), max(tmp_motif$pos))
 	if(nrow(tmp_motif)<length(list_pos)){ # Missing position (N)
-		tmp_motif <- rbind(tmp_motif, data.frame(pos=list_pos[!list_pos %in% tmp_motif$pos], bases="ACGT", code="N"))
+		tmp_motif <- rbind(tmp_motif, data.frame(pos=list_pos[!list_pos %in% tmp_motif$pos], bases="ACGT", code="N", stringsAsFactors=TRUE))
 	}
 	tmp_motif <- tmp_motif %>%
 		arrange(pos) %>%
@@ -1414,7 +1419,8 @@ find.motifs.ranges <- function(genome, discovered_motifs, iupac_nc){
 					motif=as.character(original_motif),
 					start=NA,
 					end=NA,
-					tmp_motif=as.character(motif)
+					tmp_motif=as.character(motif),
+					stringsAsFactors=TRUE
 				)
 			}else{
 				motif_matches <- data.frame(
@@ -1422,7 +1428,8 @@ find.motifs.ranges <- function(genome, discovered_motifs, iupac_nc){
 					motif=as.character(original_motif),
 					start=start(tmp_motif_matches),
 					end=end(tmp_motif_matches),
-					tmp_motif=as.character(motif)
+					tmp_motif=as.character(motif),
+					stringsAsFactors=TRUE
 				)
 			}
 
@@ -1487,7 +1494,7 @@ define.relative.position <- function(mutated_motifs_range){
 		distance <- rev(distance)
 	}
 
-	return(data.frame(position=position, dir=mutated_motifs_range$dir, motif=mutated_motifs_range$motif, distance=distance))
+	return(data.frame(position=position, dir=mutated_motifs_range$dir, motif=mutated_motifs_range$motif, distance=distance, stringsAsFactors=TRUE))
 }
 
 remove.homopolymer <- function(peaks_data, genome, len_homo, iupac_nc, seq_params, nbCPU){
@@ -1508,7 +1515,7 @@ generate.mutated.motifs <- function(motif){
 		sublist_mutated_motif <- foreach(nucleotide=c("A","C","G","T"), .combine=rbind) %do% {
 			tmp_motif[idx] <- nucleotide
 
-			return(data.frame(mutated_motif=paste0(tmp_motif,collapse=""), mutation_type=nucleotide))
+			return(data.frame(mutated_motif=paste0(tmp_motif,collapse=""), mutation_type=nucleotide, stringsAsFactors=TRUE))
 		}
 		sublist_mutated_motif$mutated_motif <- as.character(sublist_mutated_motif$mutated_motif)
 		sublist_mutated_motif$pos_mutation <- idx
@@ -1610,7 +1617,8 @@ tag.mutated.motifs <- function(potential_motif, discovered_motifs, final_stat_da
 			strand=final_stat_data$strand[overlaps_motifs_methylation@to],
 			N_wga=final_stat_data$N_wga[overlaps_motifs_methylation@to],
 			N_nat=final_stat_data$N_nat[overlaps_motifs_methylation@to],
-			mean_diff=final_stat_data$mean_diff[overlaps_motifs_methylation@to]
+			mean_diff=final_stat_data$mean_diff[overlaps_motifs_methylation@to],
+			stringsAsFactors=TRUE
 		)
 
 		methylation_at_motifs <- methylation_at_motifs %>%
@@ -2065,7 +2073,8 @@ tag.motifs <- function(motif_to_tag, discovered_motifs, methylation_signal, geno
 		strand=methylation_signal$strand[overlaps_motifs_methylation@to],
 		N_wga=methylation_signal$N_wga[overlaps_motifs_methylation@to],
 		N_nat=methylation_signal$N_nat[overlaps_motifs_methylation@to],
-		mean_diff=methylation_signal$mean_diff[overlaps_motifs_methylation@to]
+		mean_diff=methylation_signal$mean_diff[overlaps_motifs_methylation@to],
+		stringsAsFactors=TRUE
 	)
 
 	methylation_at_motifs_ranges <- methylation_at_motifs_ranges %>% 
@@ -2120,7 +2129,8 @@ draw.signature.center.detection <- function(tagged_final_stat_data, motif_score,
 		y=max(-15,min(tagged_final_stat_data$mean_diff, na.rm=TRUE)),
 		label=motif_labelling,
 		fontface=motif_labelling_fontface,
-		color=motif_labelling_color
+		color=motif_labelling_color,
+		stringsAsFactors=TRUE
 	)
 	gp_motif <- ggplot(motif_information) +
 		geom_text(aes(x=as.factor(x), y=y, label=label, fontface=fontface, col=color)) +
@@ -2357,7 +2367,7 @@ characterize.signature <- function(classification_data, base_name){
 #                                                                                          
 
 pca.plot <- function(pca_data, annotation, PCx="PC1", PCy="PC2") {
-	data <- data.frame(id=row.names(pca_data$x), pca_data$x)
+	data <- data.frame(id=row.names(pca_data$x), pca_data$x, stringsAsFactors=TRUE)
 	data <- merge(data, annotation, by.x="id", by.y="id")
 
 	labels <- unique(subset(data, select=c("label","col_label")))
@@ -2375,7 +2385,7 @@ pca.plot <- function(pca_data, annotation, PCx="PC1", PCy="PC2") {
 }
 
 pca.3D.plot <- function(pca_data, annotation, noAlpha=FALSE, PCx="PC1", PCy="PC2", PCz="PC3"){
-	data <- data.frame(id=row.names(pca_data$x), pca_data$x)
+	data <- data.frame(id=row.names(pca_data$x), pca_data$x, stringsAsFactors=TRUE)
 	data <- merge(data, annotation, by.x="id", by.y="id")
 
 	labels <- unique(subset(data, select=c("label","col_label")))
@@ -2399,7 +2409,7 @@ gglegend <- function(gp){
 }
 
 tsne.plot <- function(tsne_data, signature_data, annotation, excluded_motifs, with_legend) {
-	data <- as.data.frame(tsne_data$Y)
+	data <- as.data.frame(tsne_data$Y, stringsAsFactors=TRUE)
 	colnames(data) <- c("tsne1","tsne2")
 	data$id <- rownames(signature_data)
 	data <- merge(data, annotation, by.x="id", by.y="id")
@@ -2445,7 +2455,7 @@ tsne.plot <- function(tsne_data, signature_data, annotation, excluded_motifs, wi
 }
 
 tsne.3D.plot <- function(tsne_3d_data, signature_data, annotation, noAlpha=FALSE, PCx="tsne1", PCy="tsne2", PCz="tsne3"){
-	data <- as.data.frame(tsne_3d_data$Y)
+	data <- as.data.frame(tsne_3d_data$Y, stringsAsFactors=TRUE)
 	colnames(data) <- paste0("tsne",seq(1,ncol(tsne_3d_data$Y)))
 	data$id <- rownames(signature_data)
 	data <- merge(data, annotation, by.x="id", by.y="id")
@@ -2510,20 +2520,20 @@ prepare.annotation.data <- function(motifs_signature, ann_type, motif_summary=NA
 	if(ann_type=="motif"){
 		motif_summary$old_motif <- motif_summary$motif # TODO modify motif_summary
 		motif_summary$motif <- paste0(substr(motif_summary$motif,1,motif_summary$mod_pos-1), as.character(motif_summary$mod_type), substr(motif_summary$motif,motif_summary$mod_pos+1,nchar(motif_summary$motif)))
-		annotation <- data.frame(id=rownames(motifs_signature), label=do.call(rbind,strsplit(rownames(motifs_signature),"_"))[,2]) # Motif
+		annotation <- data.frame(id=rownames(motifs_signature), label=do.call(rbind,strsplit(rownames(motifs_signature),"_"))[,2], stringsAsFactors=TRUE) # Motif
 		annotation <- merge(annotation, subset(motif_summary, select=c(motif, col_motif)), by.x=c("label"), by.y=c("motif"))
 		names(annotation)[names(annotation)=='col_motif'] <- 'col_label'
 		annotation$col_label <- as.factor(annotation$col_label)
 	}else if(ann_type=="mod_type"){
-		annotation <- data.frame(id=rownames(motifs_signature), label=do.call(rbind,strsplit(rownames(motifs_signature),"_"))[,3]) # Modification types
-		annotation <- merge(annotation, data.frame(mod_type=c("4mC","5mC","6mA"), col_label=c("#36D2A0","#444CF0","#FF5733")), by.x=c("label"), by.y=c("mod_type"))
+		annotation <- data.frame(id=rownames(motifs_signature), label=do.call(rbind,strsplit(rownames(motifs_signature),"_"))[,3], stringsAsFactors=TRUE) # Modification types
+		annotation <- merge(annotation, data.frame(mod_type=c("4mC","5mC","6mA"), col_label=c("#36D2A0","#444CF0","#FF5733"), stringsAsFactors=TRUE), by.x=c("label"), by.y=c("mod_type"))
 		annotation$col_label <- as.factor(annotation$col_label)
 	}else if(ann_type=="dir"){
-		annotation <- data.frame(id=rownames(motifs_signature), label=do.call(rbind,strsplit(rownames(motifs_signature),"_"))[,6]) # Strand types
-		annotation <- merge(annotation, data.frame(dir=c("fwd","rev"), col_label=c("#444CF0","#FF5733")), by.x=c("label"), by.y=c("dir"))
+		annotation <- data.frame(id=rownames(motifs_signature), label=do.call(rbind,strsplit(rownames(motifs_signature),"_"))[,6], stringsAsFactors=TRUE) # Strand types
+		annotation <- merge(annotation, data.frame(dir=c("fwd","rev"), col_label=c("#444CF0","#FF5733"), stringsAsFactors=TRUE), by.x=c("label"), by.y=c("dir"))
 		annotation$col_label <- as.factor(annotation$col_label)
 	}else if(ann_type=="classify"){
-		annotation <- data.frame(id=rownames(motifs_signature), label=do.call(rbind,strsplit(rownames(motifs_signature),"_"))[,2]) # Motif
+		annotation <- data.frame(id=rownames(motifs_signature), label=do.call(rbind,strsplit(rownames(motifs_signature),"_"))[,2], stringsAsFactors=TRUE) # Motif
 		annotation <- merge(annotation, subset(motif_summary, select=c(motif, col_motif)), by.x=c("label"), by.y=c("motif"))
 		names(annotation)[names(annotation)=='col_motif'] <- 'col_label'
 		annotation$col_label <- as.factor(annotation$col_label)
@@ -2565,13 +2575,14 @@ merge.classification.data <- function(list_classification_data, list_strain_name
 		attr(classification_data, "annotation_strain") <- data.frame(
 			label=as.factor(names(list_strain_name[idx_classification_data])),
 			id=rownames(classification_data),
-			col_label=as.factor(list_strain_name[[idx_classification_data]])
+			col_label=as.factor(list_strain_name[[idx_classification_data]]),
+			stringsAsFactors=TRUE
 		)
 
 		return(classification_data)
 	}
 	merged_classification_data <- rbindlist(list_classification_data)
-	merged_classification_data <- as.data.frame(merged_classification_data)
+	merged_classification_data <- as.data.frame(merged_classification_data, stringsAsFactors=TRUE)
 	rownames(merged_classification_data) <- foreach(idx_classification_data=seq(1,length(list_classification_data)), .combine=c) %do% {
 
 		return(rownames(list_classification_data[[idx_classification_data]]))
@@ -2721,11 +2732,11 @@ draw.signature.heatmap.detailed <- function(motifs_signature, motif_summary, gen
 		clustering_info <- pamk(dendro_data) # Gave different clustering groups than hclust
 
 		# Analyzing Sub-Clusters Sequences
-		clustering_id <- as.data.frame(as.vector(cutree(hc, k=clustering_info$nc)))
+		clustering_id <- as.data.frame(as.vector(cutree(hc, k=clustering_info$nc)), stringsAsFactors=TRUE)
 		colnames(clustering_id) <- "cluster_id"
 		clustering_id$id <- names(cutree(hc, k=clustering_info$nc))
 		rownames(clustering_id) <- NULL
-		# clustering_id <- as.data.frame(clustering_info$pamobject$clustering)
+		# clustering_id <- as.data.frame(clustering_info$pamobject$clustering, stringsAsFactors=TRUE)
 		# colnames(clustering_id) <- "cluster_id"
 		# clustering_id$id <- rownames(clustering_id)
 		# rownames(clustering_id) <- NULL
@@ -2826,7 +2837,7 @@ gg_color_hue <- function(n){
 }
 
 draw.tsne.signature.heatmap.detailed <- function(motifs_signature, motif_summary, tsne_data, genome, selected_pos, hc_pos, base_name, nbCPU, clustering_method="kmeans"){
-	tsne_data <- as.data.frame(tsne_data$Y)
+	tsne_data <- as.data.frame(tsne_data$Y, stringsAsFactors=TRUE)
 	tsne_data <- cbind(tsne_data, attr(motifs_signature, "annotation_motif"))
 	tsne_data <- tsne_data %>%
 		separate(id, into=c("genome","motif","mod_type","contig_name","pos","strand","type"), sep="_") %>%
@@ -2867,7 +2878,7 @@ draw.tsne.signature.heatmap.detailed <- function(motifs_signature, motif_summary
 		clustering_info <- pamk(dendro_data) # Gave different clustering groups than hclust
 
 		# Analyzing Sub-Clusters Sequences
-		clustering_id <- as.data.frame(as.vector(cutree(hc, k=clustering_info$nc)))
+		clustering_id <- as.data.frame(as.vector(cutree(hc, k=clustering_info$nc)), stringsAsFactors=TRUE)
 		colnames(clustering_id) <- "cluster_id"
 		clustering_id$id <- names(cutree(hc, k=clustering_info$nc))
 		rownames(clustering_id) <- NULL
@@ -2988,7 +2999,7 @@ draw.tsne.signature.heatmap.detailed <- function(motifs_signature, motif_summary
 			theme(legend.justification=c(1,0), legend.position=c(1,0))
 
 		# Regenerate clean version clustering_id
-		clustering_id <- as.data.frame(as.vector(cutree(hc, k=clustering_info$nc)))
+		clustering_id <- as.data.frame(as.vector(cutree(hc, k=clustering_info$nc)), stringsAsFactors=TRUE)
 		colnames(clustering_id) <- "cluster_id"
 		clustering_id$id <- names(cutree(hc, k=clustering_info$nc))
 		rownames(clustering_id) <- NULL
@@ -3363,7 +3374,8 @@ tidy.classifier.results <- function(classifier_results, list_classifier, exclude
 	classifier_summary <- NA
 	classifier_summary <- foreach(classifier_result=classifier_results, .combine=rbind) %do%{
 		tmp_summary <- data.frame(
-			accuracy=classifier_result$results$overall[["Accuracy"]]
+			accuracy=classifier_result$results$overall[["Accuracy"]],
+			stringsAsFactors=TRUE
 		)
 
 		return(tmp_summary)
@@ -3373,7 +3385,7 @@ tidy.classifier.results <- function(classifier_results, list_classifier, exclude
 
 	classifier_details <- NA
 	classifier_details <- foreach(idx_classifier=seq(1,length(list_classifier)), .combine=rbind) %do%{
-		contingency_table <- as.data.frame(classifier_results[[idx_classifier]]$results$table)
+		contingency_table <- as.data.frame(classifier_results[[idx_classifier]]$results$table, stringsAsFactors=TRUE)
 		contingency_table$classifier <- list_classifier[idx_classifier]
 
 		return(contingency_table)
@@ -3827,7 +3839,7 @@ draw.classifier.results <- function(performance_classifier, motif_summary, base_
 			group_by(excluded_motifs, classifier, Mod_Pos) %>%
 			summarize(score_pos=sum(Perc), .groups="drop_last")
 
-		return(list(type=as.data.frame(predicted_mod_type), pos=as.data.frame(predicted_mod_pos)))
+		return(list(type=as.data.frame(predicted_mod_type, stringsAsFactors=TRUE), pos=as.data.frame(predicted_mod_pos, stringsAsFactors=TRUE)))
 	}
 
 	# Tidy results
@@ -3977,7 +3989,7 @@ classify.detected.motifs <- function(methylation_signal, strain_id, motif_center
 		}
 
 		# Tidy prediction & summarize for motif
-		prediction_summary <- data.frame(table(prediction_results))
+		prediction_summary <- data.frame(table(prediction_results), stringsAsFactors=TRUE)
 		colnames(prediction_summary) <- c("label","count")
 
 		# Generate complete data.frame
@@ -4076,7 +4088,7 @@ find.motifs <- function(genome, motif_summary, iupac_nc){
 
 			pos_motif <- vmatchPattern(motif, g_seq, fixed=FALSE)[[1]]@start + (mod_pos - 1)
 
-			return(data.frame(position=pos_motif, motif=as.character(original_motif)))
+			return(data.frame(position=pos_motif, motif=as.character(original_motif), stringsAsFactors=TRUE))
 		}
 		sub_genome_annotation$dir <- direction
 
@@ -4240,13 +4252,13 @@ summarize.feature.ROC <- function(detailed_parameters, stat_data, ROC_parameters
 			TN2 <- TN+ctrl_TN
 
 			results <- data.frame(
-				motif=motif, TP=TP, FN=FN, TN=TN, FP=FP, FP2=FP2, TN2=TN2
+				motif=motif, TP=TP, FN=FN, TN=TN, FP=FP, FP2=FP2, TN2=TN2, stringsAsFactors=TRUE
 			)
 
 			return(results)
 		}else{
 			results <- data.frame(
-				motif=motif, TP=0, FN=0, TN=0, FP=0, FP2=0, TN2=0
+				motif=motif, TP=0, FN=0, TN=0, FP=0, FP2=0, TN2=0, stringsAsFactors=TRUE
 			)
 
 			return(results)
@@ -4312,7 +4324,7 @@ new.summarize.feature.ROC <- function(detailed_parameters, stat_data, ROC_parame
 					tmp_TN <- ifelse("FALSE" %in% names(subsample_FAUXctrl_res), subsample_FAUXctrl_res["FALSE"], 0)
 					tmp_FP <- ifelse("TRUE" %in% names(subsample_FAUXctrl_res), subsample_FAUXctrl_res["TRUE"], 0)
 
-					return(data.frame(tmp_TN=tmp_TN, tmp_FP=tmp_FP))
+					return(data.frame(tmp_TN=tmp_TN, tmp_FP=tmp_FP, stringsAsFactors=TRUE))
 				} %>%
 					summarize(mean_TN=mean(tmp_TN), sd_TN=sd(tmp_TN), mean_FP=mean(tmp_FP), sd_FP=sd(tmp_FP), .groups="drop_last")
 
@@ -4331,7 +4343,7 @@ new.summarize.feature.ROC <- function(detailed_parameters, stat_data, ROC_parame
 					tmp_TP <- ifelse("TRUE" %in% names(subsample_NAT_res), subsample_NAT_res["TRUE"], 0)
 					tmp_FN <- ifelse("FALSE" %in% names(subsample_NAT_res), subsample_NAT_res["FALSE"], 0)
 
-					return(data.frame(tmp_TP=tmp_TP, tmp_FN=tmp_FN))
+					return(data.frame(tmp_TP=tmp_TP, tmp_FN=tmp_FN, stringsAsFactors=TRUE))
 				} %>%
 					summarize(mean_TP=mean(tmp_TP), sd_TP=sd(tmp_TP), mean_FN=mean(tmp_FN), sd_FN=sd(tmp_FN), .groups="drop_last")
 
@@ -4346,13 +4358,13 @@ new.summarize.feature.ROC <- function(detailed_parameters, stat_data, ROC_parame
 			}
 
 			results <- data.frame(
-				motif=motif, TP=TP, FN=FN, TN=TN, FP=FP, FP2=FP2, TN2=TN2, TP3=TP3, FN3=FN3, TN3=TN3, FP3=FP3, TP3_sd=TP3_sd, FN3_sd=FN3_sd, TN3_sd=TN3_sd, FP3_sd=FP3_sd
+				motif=motif, TP=TP, FN=FN, TN=TN, FP=FP, FP2=FP2, TN2=TN2, TP3=TP3, FN3=FN3, TN3=TN3, FP3=FP3, TP3_sd=TP3_sd, FN3_sd=FN3_sd, TN3_sd=TN3_sd, FP3_sd=FP3_sd, stringsAsFactors=TRUE
 			)
 
 			return(results)
 		}else{
 			results <- data.frame(
-				motif=motif, TP=0, FN=0, TN=0, FP=0, FP2=0, TN2=0, TP3=0, FN3=0, TN3=0, FP3=0, TP3_sd=0, FN3_sd=0, TN3_sd=0, FP3_sd=0
+				motif=motif, TP=0, FN=0, TN=0, FP=0, FP2=0, TN2=0, TP3=0, FN3=0, TN3=0, FP3=0, TP3_sd=0, FN3_sd=0, TN3_sd=0, FP3_sd=0, stringsAsFactors=TRUE
 			)
 
 			return(results)
@@ -4439,7 +4451,7 @@ genome.ctrl.ROC <- function(genome_annotation, genome, seq_params, start, end){
 						strand=genome_annotation$dir) # Is strand specific
 	empty_GR <- gaps(motifs_GR, start=1, end=width(readDNAStringSet(genome)))
 	empty_GR <- empty_GR[strand(empty_GR)!="*"] # Remove gaps no strand entry
-	genome_ctrl <- as.data.frame(empty_GR)
+	genome_ctrl <- as.data.frame(empty_GR, stringsAsFactors=TRUE)
 	genome_ctrl <- droplevels(genome_ctrl)
 	genome_ctrl$start[genome_ctrl$start < start] <- start
 	genome_ctrl$end[genome_ctrl$end > end] <- end
@@ -4455,7 +4467,7 @@ genome.ctrl.ROC <- function(genome_annotation, genome, seq_params, start, end){
 	tmp$start_margin <- by(tmp, 1:nrow(tmp), function(x) sample(seq_len(x$len_margin+1),1) - 1)
 	res <- by(tmp, 1:nrow(tmp), function(x) {
 			vec <- seq(x$start+x$start_margin, x$end, by=len_motif_range-1)
-			return(data.frame(start=vec[seq_along(vec[-length(vec)])], end=vec[seq_along(vec[-length(vec)])+1], dir=x$strand))
+			return(data.frame(start=vec[seq_along(vec[-length(vec)])], end=vec[seq_along(vec[-length(vec)])+1], dir=x$strand, stringsAsFactors=TRUE))
 		}
 	)
 	genome_ctrl <- do.call(rbind.fill,res)
@@ -4652,7 +4664,7 @@ compute.AUC <- function(ROC_data){
 		dPPV <- c(diff(PPV), 0)
 		aupr3 <- sum(PPV * dTPR) + sum(dTPR * dPPV)/2
 
-		return(data.frame(auroc=auroc, aupr=aupr, auroc2=auroc2, aupr2=aupr2, auroc3=auroc3, aupr3=aupr3))
+		return(data.frame(auroc=auroc, aupr=aupr, auroc2=auroc2, aupr2=aupr2, auroc3=auroc3, aupr3=aupr3, stringsAsFactors=TRUE))
 	}
 
 	if("dataset_name" %in% colnames(ROC_data)){
@@ -4986,7 +4998,7 @@ merge.ROC <- function(list_ROC_data, list_ROC_name){
 	merged_ROC_data <- foreach(ROC_data_idx=seq(1,length(list_ROC_data)), .combine=rbind) %do% {
 		ROC_data <- list_ROC_data[[ROC_data_idx]]
 		ROC_data$dataset_name <- list_ROC_name[ROC_data_idx]
-		ROC_data <- as.data.frame(ROC_data) # Avoid unnecessary data.table information
+		ROC_data <- as.data.frame(ROC_data, stringsAsFactors=TRUE) # Avoid unnecessary data.table information
 
 		return(ROC_data)
 	}
