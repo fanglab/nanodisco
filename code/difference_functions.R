@@ -286,7 +286,7 @@ generate.genome.chunks.information <- function(genome, chunk_size){
 		}
 		nb_prev_chunks <- nb_chunks_contig
 
-		contig_chunks <- data.frame(contig_name=as.factor(contig), start=list_contig_chunks_starts, end=list_contig_chunks_ends, chunk_id=list_contig_chunks_id)
+		contig_chunks <- data.frame(contig_name=as.factor(contig), start=list_contig_chunks_starts, end=list_contig_chunks_ends, chunk_id=list_contig_chunks_id, stringsAsFactors=TRUE)
 
 		return(contig_chunks)
 	}
@@ -318,7 +318,8 @@ compute.chunk.coverage <- function(detail_chunk_mapping){
 			rname=as.character(unique(detail_chunk_mapping$rname)),
 			pos=seq(1,strand_mapping_range[2]),
 			strand=curr_strand,
-			coverage=sapply(strand_mapping_coverage, as.numeric)[,1]
+			coverage=sapply(strand_mapping_coverage, as.numeric)[,1],
+			stringsAsFactors=TRUE
 		)
 
 		return(strand_mapping_coverage)
@@ -369,7 +370,7 @@ prepare.index <- function(sample_name, path_input, path_output, genome, chunk_si
 		range <- GRanges(seqnames=chunk_contig_name, ranges=IRanges(chunk_start,chunk_end))
 		param <- ScanBamParam(which=range, what=c("qname","rname","pos","strand","cigar","qwidth"))
 		bam <- scanBam(bamFile, param=param) # Can fail if not correctly indexed
-		chunk_fast5_info <- as.data.frame(bam[[1]]) # Fail if no reads mapped to chunk
+		chunk_fast5_info <- as.data.frame(bam[[1]], stringsAsFactors=TRUE) # Fail if no reads mapped to chunk
 
 		if(nrow(chunk_fast5_info)>0){ # If mapped reads
 			cov_th <- 1000
@@ -533,7 +534,7 @@ prepare.index <- function(sample_name, path_input, path_output, genome, chunk_si
 			chunk_fast5_info$chunk_id <- chunk
 			chunk_fast5_info$contig_name <- as.factor(chunk_contig_name)
 		}else{
-			chunk_fast5_info <- data.frame(qname=c(NA,NA), strand=c("+","-"), chunk_id=chunk, contig_name=chunk_contig_name) # Dummy return; Keep strand for mapvalues 
+			chunk_fast5_info <- data.frame(qname=c(NA,NA), strand=c("+","-"), chunk_id=chunk, contig_name=chunk_contig_name, stringsAsFactors=TRUE) # Dummy return; Keep strand for mapvalues 
 		}
 
 		return(chunk_fast5_info)
@@ -936,7 +937,7 @@ remove.outlier <- function(corrected_data, idx_chunk, chunk_size, genome, IQR_fa
 		mutate(iqr=IQR(norm_mean), q25=quantile(norm_mean)[[2]], q75=quantile(norm_mean)[[4]]) %>%
 		filter(norm_mean >= q25 - (IQR_factor * iqr) & norm_mean <= q75 + (IQR_factor * iqr)) %>%
 		dplyr::select(-c(iqr, q25, q75))
-	trimmed_data <- as.data.frame(trimmed_data)
+	trimmed_data <- as.data.frame(trimmed_data, stringsAsFactors=TRUE)
 
 	corrected_data <- rbind(subset(corrected_data, contig==chunk_contig_name & (position<=chunk_start | position>chunk_end)), trimmed_data)
 
@@ -951,12 +952,14 @@ create.empty.stat_data.file <- function(genome, chunk_size, path_output, idx_chu
 	if(inSilico=="no"){
 		empty_stat_data <- data.frame(
 			contig=chunk_contig_name, position=chunk_start, dir="rev", strand="t", # Keep dummy value to have consitant factor later
-			N_wga=0, N_nat=0, mean_diff=NA, t_test_pval=NA, u_test_pval=NA
+			N_wga=0, N_nat=0, mean_diff=NA, t_test_pval=NA, u_test_pval=NA,
+			stringsAsFactors=TRUE
 		)
 	}else{
 		empty_stat_data <- data.frame(
 			contig=chunk_contig_name, position=chunk_start, data_type="No_data", dir="rev", strand="t", # Keep dummy value to have consitant factor later
-			N_val=0, mean_diff=NA, t_test_pval=NA, u_test_pval=NA
+			N_val=0, mean_diff=NA, t_test_pval=NA, u_test_pval=NA,
+			stringsAsFactors=TRUE
 		)
 	}
 
@@ -989,13 +992,15 @@ scoring.position <- function(sub_corrected_data, inSilico, inSilico_model, min_c
 			res <- data.frame(
 				contig=contig_tested, position=pos_tested, 
 				dir=dir_tested, strand="t", N_wga=0, N_nat=0,
-				mean_diff=NA, t_test_pval=NA, u_test_pval=NA
+				mean_diff=NA, t_test_pval=NA, u_test_pval=NA,
+				stringsAsFactors=TRUE
 			)
 		}else{
 			res <- data.frame(
 				contig=contig_tested, position=pos_tested, data_type="Low_data",
 				dir=dir_tested, strand="t", N_val=0, # random dir
-				mean_diff=NA, t_test_pval=NA, u_test_pval=NA
+				mean_diff=NA, t_test_pval=NA, u_test_pval=NA,
+				stringsAsFactors=TRUE
 			)
 		}
 	}else if(inSilico=="no"){ # TODO
