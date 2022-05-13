@@ -462,7 +462,7 @@ create.contigs.info <- function(path_metagenome, genome_id, data_type){
 		contigs_info <- colsplit(gsub("(.*)_([0-9]+):([0-9]+)","\\1 \\2 \\3",names(sequence_metagenome)), " ", names=c("genome","start","end")) %>% # TODO use width
 			mutate(contig=names(sequence_metagenome), length=end-start+1, id=genome_id$id[match(genome, genome_id$contig_name)])
 	}else if(data_type=="mock_denovo"){
-		contigs_info <- data.frame(contig=names(sequence_metagenome), length=width(sequence_metagenome)) %>%
+		contigs_info <- data.frame(contig=names(sequence_metagenome), length=width(sequence_metagenome), stringsAsFactors=TRUE) %>%
 			mutate(genome=genome_id$ref[match(contig, genome_id$contig)], id=genome_id$id[match(contig, genome_id$contig)])
 	}else if(data_type=="real"){
 		contigs_info <- data.frame(
@@ -471,7 +471,8 @@ create.contigs.info <- function(path_metagenome, genome_id, data_type){
 			length=width(sequence_metagenome),
 			start=1, #NEW
 			end=width(sequence_metagenome), #NEW
-			id=genome_id$id[match(names(sequence_metagenome), genome_id$contig)]
+			id=genome_id$id[match(names(sequence_metagenome), genome_id$contig)],
+			stringsAsFactors=TRUE
 		)
 	}
 
@@ -484,7 +485,8 @@ prepare.metagenome.info <- function(path_metagenome){
 		ncbi_name=names(metagenome),
 		contig_name=gsub(".*(unitig_[0-9]+),.*","\\1",names(metagenome)),
 		length=width(metagenome),
-		chr=str_split(names(metagenome)," ",simplify=TRUE)[,1]
+		chr=str_split(names(metagenome)," ",simplify=TRUE)[,1],
+		stringsAsFactors=TRUE
 	)
 
 	return(metagenome_info)
@@ -526,7 +528,7 @@ prepare.bin.annotation <- function(path_binning){
 		contig_name <- str_split(names(fasta_bin),"\\|", simplify=TRUE)[,1]
 		bin <- as.integer(gsub(".*([0-9]).*","\\1",fasta_bin_file, fixed=FALSE))
 
-		return(data.frame(contig_name=contig_name, bin=paste0("Bin_",bin)))
+		return(data.frame(contig_name=contig_name, bin=paste0("Bin_",bin), stringsAsFactors=TRUE))
 	}
 
 	return(bin_annotation)
@@ -652,7 +654,7 @@ decompose.degenerated.motifs <- function(list_motifs, iupac_nc, partial=TRUE){
 
 	list_decomposed_motifs <- foreach(motif=list_motifs, .combine=c) %do% {
 		length_motif <- nchar(motif)
-		decomposed_motif <- as.data.frame(str_split(motif,"",simplify=TRUE))
+		decomposed_motif <- as.data.frame(str_split(motif,"",simplify=TRUE), stringsAsFactors=TRUE)
 		colnames(decomposed_motif) <- paste0("pos",seq(1,length_motif))
 
 		if(partial %in% c(1,2)){
@@ -724,7 +726,7 @@ complete.decompose.motifs <- function(list_motifs, iupac_nc){
 
 	df_decomposed_motifs <- foreach(motif=list_motifs, .combine=rbind) %do% {
 		length_motif <- nchar(motif)
-		decomposed_motif <- as.data.frame(str_split(motif,"",simplify=TRUE))
+		decomposed_motif <- as.data.frame(str_split(motif,"",simplify=TRUE), stringsAsFactors=TRUE)
 		colnames(decomposed_motif) <- paste0("pos",seq(1,length_motif))
 
 		motifs_base <- vector("list", length_motif)
@@ -735,7 +737,7 @@ complete.decompose.motifs <- function(list_motifs, iupac_nc){
 		motifs_df <- expand.grid(motifs_base)
 		decomposed_motifs <- apply(motifs_df, 1, paste, collapse="")
 
-		return(data.frame(motifs=motif, decomposed_motifs=decomposed_motifs, n=length(decomposed_motifs)))
+		return(data.frame(motifs=motif, decomposed_motifs=decomposed_motifs, n=length(decomposed_motifs), stringsAsFactors=TRUE))
 	}
 
 	return(df_decomposed_motifs)
@@ -846,7 +848,8 @@ prepare.splitted.contifs.annotation <- function(contigs_info, target_length=1000
 			length=ends-(starts-1),
 			id=contig_toSplit$id,
 			parent_contig=str_split(contig_toSplit$contig," ",simplify=TRUE)[,1],
-			split_id=seq(1,nb_split)
+			split_id=seq(1,nb_split),
+			stringsAsFactors=TRUE
 		)
 		
 		return(splitted_contig)
@@ -1054,7 +1057,7 @@ score.metagenome.motifs <- function(genome_id, path_metagenome, data_type, list_
 
 		if(nrow(motifs)==0){
 			# No matching motif in all contigs
-			empty_scored_motif <- data.frame(contig="None", motif=current_motif, distance_motif=0, signal_ratio=NA, dist_score=0.0, nb_occurrence=0)
+			empty_scored_motif <- data.frame(contig="None", motif=current_motif, distance_motif=0, signal_ratio=NA, dist_score=0.0, nb_occurrence=0, stringsAsFactors=TRUE)
 			empty_scored_motif$nb_occurrence <- as.integer(empty_scored_motif$nb_occurrence)
 
 			return(empty_scored_motif)
@@ -1393,7 +1396,7 @@ tsne.motifs.score.dev <- function(path_metagenome, scored_motifs, data_type, occ
 	tsne_matrix <- as.matrix(subset(matrix_scored_motifs, select=-c(contig)))
 	print_message("    Dimentionality reduction")
 	set.seed(tsne_seed)
-	tsne_data <- as.data.frame(Rtsne(tsne_matrix, check_duplicates=FALSE, perplexity=tsne_perplexity, max_iter=tsne_max_iter)$Y)
+	tsne_data <- as.data.frame(Rtsne(tsne_matrix, check_duplicates=FALSE, perplexity=tsne_perplexity, max_iter=tsne_max_iter)$Y, stringsAsFactors=TRUE)
 
 	tsne_data <- tsne_data %>%
 		mutate(contig=matrix_scored_motifs$contig) %>% # Link back contig names
@@ -1524,7 +1527,7 @@ tsne.motifs.score <- function(path_metagenome, scored_motifs, data_type, occ_thr
 	tsne_matrix <- as.matrix(subset(matrix_scored_motifs, select=-c(contig)))
 	print_message("    Dimentionality reduction")
 	set.seed(tsne_seed)
-	tsne_data <- as.data.frame(Rtsne(tsne_matrix, check_duplicates=FALSE, perplexity=tsne_perplexity, max_iter=tsne_max_iter)$Y)
+	tsne_data <- as.data.frame(Rtsne(tsne_matrix, check_duplicates=FALSE, perplexity=tsne_perplexity, max_iter=tsne_max_iter)$Y, stringsAsFactors=TRUE)
 
 	tsne_data <- tsne_data %>%
 		mutate(contig=matrix_scored_motifs$contig) %>% # Link back contig names
@@ -2181,7 +2184,7 @@ score.contigs.alignments <- function(path_metagenome, bamFile, genome_bin_id, ba
 
 		if(nrow(alignment_information_contig)==0){
 			list_columns <- c(whats, tags)
-			alignment_information_contig <- data.frame(matrix(NA, nrow=1, ncol=length(list_columns)))
+			alignment_information_contig <- data.frame(matrix(NA, nrow=1, ncol=length(list_columns)), stringsAsFactors=TRUE)
 			colnames(alignment_information_contig) <- list_columns
 		}
 
@@ -2253,7 +2256,7 @@ filtering.overlapping.motifs <- function(selected_dist_real_features, list_lengt
 			summary_overlapping_motifs <- foreach(base_kmer_motif=base_kmer_motifs, .combine=rbind) %dopar% {
 				number_of_matching_motifs <- length(list_motifs_to_filter$motif[grep(base_kmer_motif, list_motifs_to_filter$motif)])
 
-				return(data.frame(motif=base_kmer_motif, n_matches=number_of_matching_motifs))
+				return(data.frame(motif=base_kmer_motif, n_matches=number_of_matching_motifs, stringsAsFactors=TRUE))
 			}
 			summary_overlapping_motifs <- summary_overlapping_motifs %>%
 				arrange(desc(n_matches)) %>%
@@ -2580,7 +2583,7 @@ check.motifs.selection <- function(selected_dist_real_features, list_expected_mo
 	recovery <- foreach(motif_of_interest=list_expected_motifs, .combine=rbind) %do% {
 		matching_selected_motifs <- list_selected_motifs[grepl(convert.motif.grep(motif_of_interest),list_selected_motifs)]
 
-		return(data.frame(motif=motif_of_interest, n_matches=length(matching_selected_motifs)))
+		return(data.frame(motif=motif_of_interest, n_matches=length(matching_selected_motifs), stringsAsFactors=TRUE))
 	}
 
 	accuracy <- selected_dist_real_features
@@ -2765,7 +2768,7 @@ compute.contig.composition <- function(contig_name, path_metagenome, window_size
 	registerDoMC(nbCPU)
 	contig_content <- foreach(start_window=starts_windows, .combine=rbind) %dopar% {
 		nucleotide_n <- seqinr::count(g_seq[[1]][seq(start_window,start_window + (window_size - 1))],1)
-		result <- data.frame((nucleotide_n * 100)/window_size)
+		result <- data.frame((nucleotide_n * 100)/window_size, stringsAsFactors=TRUE)
 		result$start <- start_window + relative_position
 
 		return(result)
@@ -3034,7 +3037,7 @@ tsne.kmer.frequency <- function(kmer_frequency, sequence_metagenome, contigs_inf
 	}
 
 	set.seed(seed)
-	tsne_kmer_frequency_data <- as.data.frame(Rtsne(kmer_frequency, check_duplicates=FALSE)$Y)
+	tsne_kmer_frequency_data <- as.data.frame(Rtsne(kmer_frequency, check_duplicates=FALSE)$Y, stringsAsFactors=TRUE)
 
 	tsne_kmer_frequency_data <- tsne_kmer_frequency_data %>%
 		mutate(contig=as.factor(contig_name_to_add)) %>%
