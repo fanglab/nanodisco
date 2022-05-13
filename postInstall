@@ -81,10 +81,11 @@ git clone --depth=1 -b v1.0.0 https://github.com/libgit2/libgit2.git /libgit2_sr
 cd ..
 
 # Prepare for installing R packages
-echo "options(repos ='https://cran.rstudio.com/', \
+echo "options(repos = 'https://cran.rstudio.com/', \
   unzip = 'internal', \
-  download.file.method ='libcurl', \
-  Ncpus = parallel::detectCores() )" >> /usr/local/lib/R/etc/Rprofile.site #  /etc/R/Rprofile.site
+  download.file.method = 'libcurl', \
+  Ncpus = parallel::detectCores(), \
+  options(stringsAsFactors = TRUE) )" >> /usr/local/lib/R/etc/Rprofile.site #  /etc/R/Rprofile.site
 
 # Packages managers for R
 Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
