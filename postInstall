@@ -85,7 +85,7 @@ echo "options(repos = 'https://cran.rstudio.com/', \
   unzip = 'internal', \
   download.file.method = 'libcurl', \
   Ncpus = parallel::detectCores(), \
-  options(stringsAsFactors = TRUE) )" >> /usr/local/lib/R/etc/Rprofile.site #  /etc/R/Rprofile.site
+  stringsAsFactors = TRUE )" >> /usr/local/lib/R/etc/Rprofile.site #  /etc/R/Rprofile.site
 
 # Packages managers for R
 Rscript -e "Sys.setenv(TAR = '/bin/tar'); \
