@@ -1,5 +1,3 @@
-options(stringsAsFactors=TRUE) # Reverse change from R4.0.0
-
 load.libraries.all <- function(){
 	library(optparse)
 	library(ggplot2)
