@@ -17,7 +17,7 @@ For more information, please consult https://github.com/fanglab/nanodisco
       "ghostscript=9.50~dfsg-5ubuntu4.5" \
       "libcurl4-openssl-dev=7.68.0-1ubuntu2.11" \
       "libssl-dev=1.1.1f-1ubuntu2.13" \
-      "libxml2-dev=2.9.10+dfsg-5ubuntu0.20.04.2" \
+      "libxml2-dev=2.9.10+dfsg-5ubuntu0.20.04.3" \
       "libxslt1-dev=1.1.34-4" \
       "zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.3" \
       "libncurses5-dev=6.2-0ubuntu2" \
